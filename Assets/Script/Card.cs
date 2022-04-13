@@ -4,34 +4,17 @@ using UnityEngine;
 
 public class Card : MonoBehaviour
 {
-    private int val;
-    
-    public UnityEngine.UI.Button me;
     public UnityEngine.UI.Image img;
+    public Deck theDeck;
+    public Suit suit ;
+    public int value;
 
-    public int Value
+    public void SetValue(int mixedValue)
     {
-        get { return val;  }
-        set
-        {
-            if (val != value)
-            {
-                val = value;
-                img.sprite = Resources.Load<Sprite>("Bundles/Card/card_" + val);
-            }
-        }
-    }
-
-    void Start()
-    {
-        me.onClick.AddListener(OnClick);
-    }
-
-    private void OnClick()
-    {
-       Debug.Log("Hello Yoon"); 
-       // img.sprite = 
-       img.sprite = Resources.Load<Sprite>("Bundles/Card/card_" + val);
-       val = val + 1;
+        img.sprite = theDeck.GetSprite(mixedValue);
+        value = mixedValue % 13 + 1;
+        suit = (Suit)(mixedValue / 13);
+        
+        name = suit.ToString() + " " + value.ToString() + " " +  mixedValue.ToString();
     }
 }
