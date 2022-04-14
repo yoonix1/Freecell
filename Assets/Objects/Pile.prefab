@@ -66,7 +66,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b0e545d0a81544a7abb7932a3ec62929, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 5c992c56c4d4d499bb3f1115f04c723a, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -88,3 +88,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff5b69f4c12d64048953c523306a4f70, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  deckVoffset: -50
+  theDeck: {fileID: 0}
+  zoneMode: 0

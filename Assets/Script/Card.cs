@@ -9,12 +9,14 @@ public class Card : MonoBehaviour
     public Suit suit ;
     public int value;
 
+    private string[] suitToString = new[] {"H", "S", "D", "C"};
+
     public void SetValue(int mixedValue)
     {
         img.sprite = theDeck.GetSprite(mixedValue);
         value = mixedValue % 13 + 1;
         suit = (Suit)(mixedValue / 13);
         
-        name = suit.ToString() + " " + value.ToString() + " " +  mixedValue.ToString();
+        name = suitToString[(int)suit] + value.ToString();
     }
 }

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 1312797600879432013}
   - component: {fileID: 1312797600879432012}
   - component: {fileID: 1312797600879432008}
+  - component: {fileID: 8247876570571343651}
   m_Layer: 5
   m_Name: Card
   m_TagString: Untagged
@@ -92,6 +93,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   img: {fileID: 1312797600879432014}
   theDeck: {fileID: 0}
+  suit: 0
+  value: 0
 --- !u!114 &1312797600879432012
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -105,6 +108,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   canvas: {fileID: 0}
+  isDropped: 0
 --- !u!225 &1312797600879432008
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -117,3 +121,18 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &8247876570571343651
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1312797600879432018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff5b69f4c12d64048953c523306a4f70, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deckVoffset: -50
+  theDeck: {fileID: 0}
+  zoneMode: 0

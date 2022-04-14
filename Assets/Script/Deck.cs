@@ -19,6 +19,7 @@ public class Deck : MonoBehaviour
     private LinkedList<Card>[] column = new LinkedList<Card>[8];
     private Pile[] pile = new Pile[4];
     private Pile[] work = new Pile[4];
+    private Pile[] colPile = new Pile[8];
     
     private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
 
@@ -47,33 +48,35 @@ public class Deck : MonoBehaviour
             column[i] = new LinkedList<Card>();
         }
 
+        float colwidth = Constants.CARD_PADDING_W;
+        float offset = Constants.SCREEN_OFFSET_W - 1;
         for (i = 0; i < 4; i++)
         {
             pile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
-            work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect );
-        }
-        Resize();
-    }
-
-
-    private void Resize()
-    {
-        int i;
-        float colwidth = width / 8;
-        float offset = 50;
-
-        for (i = 0; i < 4; i++)
-        {
-            work[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(colwidth * i + offset, -100);
             pile[i].GetComponent<RectTransform>().anchoredPosition = new Vector2( colwidth * (i + 4) + offset, -100);
+            pile[i].zoneMode = DropZoneMode.Pile;
+            
+            work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
+            work[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(colwidth * i + offset, -100);
+            work[i].zoneMode = DropZoneMode.Work;
+        }
+
+        for (i = 0; i < 8; i++)
+        {
+            colPile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
+            colPile[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(colwidth * i + offset , Constants.SCREEN_OFFSET_H);
+            colPile[i].zoneMode = DropZoneMode.Deck;
         }
     }
+
+
 
     private void OnDeal()
     {
         //deal.gameObject.SetActive(false);
         DoDeal(10);
         DrawDeck();
+        MarkAllCardsOnDeck();
     }
     private void OnGameOver()
     {
@@ -92,16 +95,89 @@ public class Deck : MonoBehaviour
         int icol = 0;
         foreach (LinkedList<Card> cards in column)
         {
-            offset.x = icol * 75 + 50;
+            offset.x = icol * Constants.CARD_PADDING_W + Constants.SCREEN_OFFSET_W;
             i = 0;
             foreach (Card item in cards)
             {
-                offset.y = -75 * i - 150;
+                offset.y = -Constants.CARD_PADDING_H * i + Constants.SCREEN_OFFSET_H;
                 item.GetComponent<RectTransform>().anchoredPosition = offset;
                 item.GetComponent<RectTransform>().SetAsLastSibling();
+                item.GetComponent<Draggable>().enabled = false;
+                if (cards.Last.Value == item)
+                {
+                    item.GetComponent<Draggable>().enabled = true;
+                }
                 i += 1;
             }
             icol += 1;
+        }
+
+	for(i = 0; i < 4; i++)
+	{
+            pile[i].GetComponent<Pile>().enabled = true;
+	    work[i].GetComponent<Pile>().enabled = true;
+	}
+    }
+
+    public void UpdateDropZones(GameObject to, GameObject moved)
+    {
+        Pile dropee = moved.GetComponent<Pile>();
+        if (dropee)
+        {
+            if (dropee.zoneMode == DropZoneMode.Deck)
+            {
+                if (column[dropee.colIdx].Last != null)
+                {
+                    column[dropee.colIdx].RemoveLast();
+                    if (column[dropee.colIdx].Last != null)
+                    {
+                        column[dropee.colIdx].Last.Value.GetComponent<Draggable>().enabled = true;
+		    }
+                }
+            }
+        }
+
+        Pile dropzone = to.GetComponent<Pile>();
+        if (dropzone)
+        {
+            if (dropzone.zoneMode == DropZoneMode.Deck)
+            {
+                dropee.colIdx = dropzone.colIdx;
+                dropee.GetComponent<Draggable>().enabled = true;
+                dropee.zoneMode = DropZoneMode.Deck;
+                if (column[dropzone.colIdx].Last != null)
+                {
+                    column[dropzone.colIdx].Last.Value.GetComponent<Draggable>().enabled = false;
+                    column[dropzone.colIdx].AddLast(dropee.GetComponent<Card>());
+                }
+            }
+            else if (dropzone.zoneMode == DropZoneMode.Pile)
+            {
+                dropzone.enabled = false;
+                dropee.enabled = true; 
+                //dropee.GetComponent<Draggable>().enabled = false;
+                //dropee.GetComponent<CanvasGroup>().blocksRaycasts = false;
+                dropee.zoneMode = DropZoneMode.Pile;
+            }
+            else if (dropzone.zoneMode == DropZoneMode.Work)
+            {
+                dropee.zoneMode = DropZoneMode.Work;
+            }
+        }
+    }
+
+    private void MarkAllCardsOnDeck()
+    {
+        int idx = 0;
+        foreach (LinkedList<Card> col in column)
+        {
+            foreach (Card card in col)
+            {
+                Pile pile = card.GetComponent<Pile>();
+                pile.zoneMode = DropZoneMode.Deck;
+                pile.colIdx = idx;
+            }
+            idx++;
         }
     }
 
@@ -116,17 +192,18 @@ public class Deck : MonoBehaviour
             col.Clear();
         }
         
+        int[] cards = new int[Constants.NUMBER_OF_CARDS];
+        for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
+        {
+            cards[i]  = i;   
+        }
+        
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
             seed = (seed * 214013 + 2531011) & 0xffffffff;
             c = ((seed >> 16) & 0x7fff) % cardsleft;
-        // remap card number "suit/num" to "num/suit"
-        //    uint num = c / 4 + 1;
-        //    uint suit = c % 4;
-        //    uint mymap = (num - 1) + suit * 13;
-            Debug.Log("order" + c.ToString());
-            column[i % 8].AddLast(card[c]);
-            card[c] = card[cardsleft - 1];
+            column[i % 8].AddLast(card[cards[c]]);
+            cards[c] = cards[cardsleft - 1];
             cardsleft -= 1;
         }
     }
