@@ -53,11 +53,10 @@
   </PropertyGroup>
   <ItemGroup>
      <Compile Include="Assets\Script\Draggable.cs" />
-     <Compile Include="Assets\Script\Game.cs" />
      <Compile Include="Assets\Script\Deck.cs" />
+     <Compile Include="Assets\Script\DropZone.cs" />
      <Compile Include="Assets\Script\Card.cs" />
      <Compile Include="Assets\Script\Constants.cs" />
-     <Compile Include="Assets\Script\Pile.cs" />
  <Reference Include="UnityEngine">
  <HintPath>/Applications/Unity/Hub/Editor/2020.3.30f1/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
  </Reference>

@@ -128,17 +128,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 267346360109632473, guid: 59940a7901e5b47b59d2d8579c796507, type: 3}
   m_PrefabInstance: {fileID: 267346360070912686}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &38875514 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 267346360109632468, guid: 59940a7901e5b47b59d2d8579c796507, type: 3}
-  m_PrefabInstance: {fileID: 267346360070912686}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff5b69f4c12d64048953c523306a4f70, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &62565500
 GameObject:
   m_ObjectHideFlags: 0
@@ -325,6 +314,27 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &555404870 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1312797600879432018, guid: 0e6f414f446b94bd1924ef1cd5a620ce, type: 3}
+  m_PrefabInstance: {fileID: 1312797600572823548}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &555404871
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 555404870}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36c313a21c3f842d7b790b048fa4fb64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deckVoffset: -50
+  theDeck: {fileID: 2040945828}
+  zoneMode: 0
+  colIdx: 0
 --- !u!1 &728822628
 GameObject:
   m_ObjectHideFlags: 0
@@ -416,12 +426,33 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1312797600879432013, guid: 0e6f414f446b94bd1924ef1cd5a620ce, type: 3}
   m_PrefabInstance: {fileID: 1312797600572823548}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 555404870}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: edf0519bb9fad4e119b59b42b27bfe98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1318674658 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 267346360109632472, guid: 59940a7901e5b47b59d2d8579c796507, type: 3}
+  m_PrefabInstance: {fileID: 267346360070912686}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1318674661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1318674658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36c313a21c3f842d7b790b048fa4fb64, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deckVoffset: -50
+  theDeck: {fileID: 2040945828}
+  zoneMode: 0
+  colIdx: 0
 --- !u!1 &1521773797
 GameObject:
   m_ObjectHideFlags: 0
@@ -661,7 +692,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   deal: {fileID: 1521773799}
-  objPile: {fileID: 38875514}
+  objPile: {fileID: 1318674661}
   objCard: {fileID: 843548337}
 --- !u!114 &2040945829
 MonoBehaviour:
@@ -800,7 +831,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 267346360109632468, guid: 59940a7901e5b47b59d2d8579c796507, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 59940a7901e5b47b59d2d8579c796507, type: 3}
 --- !u!1001 &1312797600572823548
 PrefabInstance:
@@ -817,6 +849,10 @@ PrefabInstance:
       propertyPath: theDeck
       value: 
       objectReference: {fileID: 2040945828}
+    - target: {fileID: 1312797600879432013, guid: 0e6f414f446b94bd1924ef1cd5a620ce, type: 3}
+      propertyPath: dropZone
+      value: 
+      objectReference: {fileID: 555404871}
     - target: {fileID: 1312797600879432018, guid: 0e6f414f446b94bd1924ef1cd5a620ce, type: 3}
       propertyPath: m_Name
       value: Card
@@ -909,5 +945,6 @@ PrefabInstance:
       propertyPath: theDeck
       value: 
       objectReference: {fileID: 2040945828}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 8247876570571343651, guid: 0e6f414f446b94bd1924ef1cd5a620ce, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 0e6f414f446b94bd1924ef1cd5a620ce, type: 3}
