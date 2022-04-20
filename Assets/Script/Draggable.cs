@@ -9,30 +9,32 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
 {
     public Canvas canvas;
     public bool isDropped; // if dropped to a valid location other wise we will force back to starting achor position
+
+
+    [System.NonSerialized]
+    public Card card;
+
     private CanvasGroup canvasGroup;
-    private RectTransform rect;
     private Vector2 startingPos;
-    private bool reqDisable;
     
     void Awake()
     {
-        rect = gameObject.GetComponent<RectTransform>();
         canvasGroup = gameObject.GetComponent<CanvasGroup>();
+        card = GetComponent<Card>();
     }
     
     public void OnBeginDrag(PointerEventData eventData)
     {
-        startingPos = rect.anchoredPosition;
+        startingPos = card.rect.anchoredPosition;
         isDropped = false;
         
-        rect.SetAsLastSibling();
-        
+        card.rect.SetAsLastSibling();
         canvasGroup.blocksRaycasts = false;
     }
     
     public void OnDrag(PointerEventData eventData)
     {
-        rect.anchoredPosition += eventData.delta / canvas.scaleFactor;
+        card.rect.anchoredPosition += eventData.delta / canvas.scaleFactor;
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -51,7 +53,7 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
         // i was just let go not dropped to a locked position
         if (!isDropped)
         {
-            rect.anchoredPosition = startingPos;
+            card.rect.anchoredPosition = startingPos;
         }
     }
 

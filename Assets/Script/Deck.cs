@@ -11,28 +11,25 @@ public class Deck : MonoBehaviour
 {
     public Button deal;
 
-    public Pile objPile;
+    public DropZone objPile;
     public Card objCard;
     
     private Card[] card = new Card[Constants.NUMBER_OF_CARDS];
 
     private LinkedList<Card>[] column = new LinkedList<Card>[8];
-    private Pile[] pile = new Pile[4];
-    private Pile[] work = new Pile[4];
-    private Pile[] colPile = new Pile[8];
+    private DropZone[] pile = new DropZone[4];
+    private DropZone[] work = new DropZone[4];
+    private DropZone[] colPile = new DropZone[8];
     
     private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
 
     private float width = 0;
     private float height = 0;
-    
-    void Start()
+
+    private void Awake()
     {
         int i;
-        deal.onClick.AddListener(OnDeal);
-        
         sprites = Resources.LoadAll<Sprite>("Textures/Card");
-
         RectTransform rect = GetComponent<RectTransform>();
         width = rect.rect.width;
         height = rect.rect.height;
@@ -40,36 +37,52 @@ public class Deck : MonoBehaviour
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
             card[i] = Instantiate(objCard, Vector3.zero, Quaternion.identity, rect);
-            card[i].SetValue(i);
         }
+
+        for (i = 0; i < 4; i++)
+        {
+            pile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
+            work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
+	    }
 
         for (i = 0; i < 8; i++)
         {
+            colPile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
             column[i] = new LinkedList<Card>();
+        }
+    }
+
+    void Start()
+    {
+        int i;
+        deal.onClick.AddListener(OnDeal);
+
+
+        for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
+        {
+            card[i].SetValue(i);
         }
 
         float colwidth = Constants.CARD_PADDING_W;
         float offset = Constants.SCREEN_OFFSET_W - 1;
         for (i = 0; i < 4; i++)
         {
-            pile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
-            pile[i].GetComponent<RectTransform>().anchoredPosition = new Vector2( colwidth * (i + 4) + offset, -100);
+            pile[i].rect.anchoredPosition = new Vector2(colwidth * (i + 4) + offset, -100);
             pile[i].zoneMode = DropZoneMode.Pile;
-            
-            work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
-            work[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(colwidth * i + offset, -100);
+            pile[i].colIdx = i;
+
+            work[i].rect.anchoredPosition = new Vector2(colwidth * i + offset, -100);
             work[i].zoneMode = DropZoneMode.Work;
+            work[i].colIdx = i;
         }
 
         for (i = 0; i < 8; i++)
         {
-            colPile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
-            colPile[i].GetComponent<RectTransform>().anchoredPosition = new Vector2(colwidth * i + offset , Constants.SCREEN_OFFSET_H);
+            colPile[i].rect.anchoredPosition = new Vector2(colwidth * i + offset, Constants.SCREEN_OFFSET_H);
             colPile[i].zoneMode = DropZoneMode.Deck;
+            colPile[i].colIdx = i;
         }
     }
-
-
 
     private void OnDeal()
     {
@@ -100,9 +113,9 @@ public class Deck : MonoBehaviour
             foreach (Card item in cards)
             {
                 offset.y = -Constants.CARD_PADDING_H * i + Constants.SCREEN_OFFSET_H;
-                item.GetComponent<RectTransform>().anchoredPosition = offset;
-                item.GetComponent<RectTransform>().SetAsLastSibling();
-                item.GetComponent<Draggable>().enabled = false;
+                item.rect.anchoredPosition = offset;
+                item.rect.SetAsLastSibling();
+                item.draggable.enabled = false;
                 if (cards.Last.Value == item)
                 {
                     item.GetComponent<Draggable>().enabled = true;
@@ -111,17 +124,11 @@ public class Deck : MonoBehaviour
             }
             icol += 1;
         }
-
-	for(i = 0; i < 4; i++)
-	{
-            pile[i].GetComponent<Pile>().enabled = true;
-	    work[i].GetComponent<Pile>().enabled = true;
-	}
     }
 
     public void UpdateDropZones(GameObject to, GameObject moved)
     {
-        Pile dropee = moved.GetComponent<Pile>();
+        DropZone dropee = moved.GetComponent<DropZone>();
         if (dropee)
         {
             if (dropee.zoneMode == DropZoneMode.Deck)
@@ -131,24 +138,24 @@ public class Deck : MonoBehaviour
                     column[dropee.colIdx].RemoveLast();
                     if (column[dropee.colIdx].Last != null)
                     {
-                        column[dropee.colIdx].Last.Value.GetComponent<Draggable>().enabled = true;
-		    }
+                        column[dropee.colIdx].Last.Value.draggable.enabled = true;
+		            }
                 }
             }
         }
 
-        Pile dropzone = to.GetComponent<Pile>();
+        DropZone dropzone = to.GetComponent<DropZone>();
         if (dropzone)
         {
             if (dropzone.zoneMode == DropZoneMode.Deck)
             {
                 dropee.colIdx = dropzone.colIdx;
-                dropee.GetComponent<Draggable>().enabled = true;
+                dropee.self.draggable.enabled = true;
                 dropee.zoneMode = DropZoneMode.Deck;
                 if (column[dropzone.colIdx].Last != null)
                 {
-                    column[dropzone.colIdx].Last.Value.GetComponent<Draggable>().enabled = false;
-                    column[dropzone.colIdx].AddLast(dropee.GetComponent<Card>());
+                    column[dropzone.colIdx].Last.Value.draggable.enabled = false;
+                    column[dropzone.colIdx].AddLast(dropee.self);
                 }
             }
             else if (dropzone.zoneMode == DropZoneMode.Pile)
@@ -173,7 +180,7 @@ public class Deck : MonoBehaviour
         {
             foreach (Card card in col)
             {
-                Pile pile = card.GetComponent<Pile>();
+                DropZone pile = card.dropZone;
                 pile.zoneMode = DropZoneMode.Deck;
                 pile.colIdx = idx;
             }
@@ -202,7 +209,12 @@ public class Deck : MonoBehaviour
         {
             seed = (seed * 214013 + 2531011) & 0xffffffff;
             c = ((seed >> 16) & 0x7fff) % cardsleft;
-            column[i % 8].AddLast(card[cards[c]]);
+
+            Card addee = card[cards[c]];
+            int colIdx = i % 8;
+            column[colIdx].AddLast(addee);
+            addee.dropZone.colIdx = colIdx;
+
             cards[c] = cards[cardsleft - 1];
             cardsleft -= 1;
         }

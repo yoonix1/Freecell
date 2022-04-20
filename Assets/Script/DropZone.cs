@@ -5,40 +5,46 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
-public class Pile : MonoBehaviour, IDropHandler
+public class DropZone : MonoBehaviour, IDropHandler
 {
     public float deckVoffset = -Constants.CARD_PADDING_H;
     public Deck theDeck;
     public DropZoneMode zoneMode;
     public int colIdx;
 
-    private Card myCard;
-    private RectTransform myRect;
+    // all cards are dropzones since we can put a card on top of card.
+    [System.NonSerialized]
+    public Card self;
+
+    [System.NonSerialized]
+    public RectTransform rect;
+
+    [System.NonSerialized]
+    public Card lastCard;
 
     void Awake()
     {
-        myCard = GetComponent<Card>();
-        myRect = GetComponent<RectTransform>();
+        rect = GetComponent<RectTransform>();
+        self = GetComponent<Card>();
     }
 
     public void OnDrop(PointerEventData eventData)
     {
         if (eventData.pointerDrag != null)
         {
-            Card dropzone = myCard;
             Card dropee = eventData.pointerDrag.GetComponent<Card>();
 
-            if (CanBeDropped(dropzone, dropee))
+            if (CanBeDropped(self, dropee))
             {
-                Vector2 anchorPos = myRect.anchoredPosition;
-                if (zoneMode == DropZoneMode.Deck && dropzone != null)
+                Vector2 anchorPos = rect.anchoredPosition;
+                if (zoneMode == DropZoneMode.Deck && self != null)
                 {
                     anchorPos.y += deckVoffset;
                 }
 
-                eventData.pointerDrag.GetComponent<RectTransform>().anchoredPosition = anchorPos;
-                eventData.pointerDrag.GetComponent<RectTransform>().SetAsLastSibling();
-                eventData.pointerDrag.GetComponent<Draggable>().isDropped = true;
+                dropee.rect.anchoredPosition = anchorPos;
+                dropee.rect.SetAsLastSibling();
+                dropee.draggable.isDropped = true;
                 theDeck.UpdateDropZones(gameObject, eventData.pointerDrag);
             }
         }
@@ -46,7 +52,7 @@ public class Pile : MonoBehaviour, IDropHandler
 
     bool CanBeDropped(Card dropzoneCard, Card dropee)
     {
-        Pile dropeePile = dropee.GetComponent<Pile>();
+        DropZone dropeePile = dropee.GetComponent<DropZone>();
         if (zoneMode == DropZoneMode.Deck)
         {
             if (dropzoneCard == null)
@@ -71,10 +77,10 @@ public class Pile : MonoBehaviour, IDropHandler
         }
         else if (zoneMode == DropZoneMode.Work)
         {
-	    if (dropeePile.zoneMode == DropZoneMode.Pile) 
-	    {
-		return false;
-	    }
+	        if (dropeePile.zoneMode == DropZoneMode.Pile) 
+	        {
+	         	return false;
+	        }
 
             if (dropzoneCard == null)
             {
