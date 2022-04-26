@@ -25,16 +25,16 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
     
     public void OnBeginDrag(PointerEventData eventData)
     {
-        startingPos = card.rect.anchoredPosition;
+        startingPos = card.GetRect().anchoredPosition;
         isDropped = false;
         
-        card.rect.SetAsLastSibling();
+        card.GetRect().SetAsLastSibling();
         canvasGroup.blocksRaycasts = false;
     }
     
     public void OnDrag(PointerEventData eventData)
     {
-        card.rect.anchoredPosition += eventData.delta / canvas.scaleFactor;
+        card.GetRect().anchoredPosition += eventData.delta / canvas.scaleFactor;
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -53,7 +53,7 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
         // i was just let go not dropped to a locked position
         if (!isDropped)
         {
-            card.rect.anchoredPosition = startingPos;
+            card.GetRect().anchoredPosition = startingPos;
         }
     }
 

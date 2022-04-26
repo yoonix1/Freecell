@@ -5,7 +5,9 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.AddressableAssets;
 using Debug = UnityEngine.Debug;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class Deck : MonoBehaviour
 {
@@ -13,7 +15,8 @@ public class Deck : MonoBehaviour
 
     public DropZone objPile;
     public Card objCard;
-    
+
+
     private Card[] card = new Card[Constants.NUMBER_OF_CARDS];
 
     private LinkedList<Card>[] column = new LinkedList<Card>[8];
@@ -23,13 +26,20 @@ public class Deck : MonoBehaviour
     
     private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
 
+    [SerializeField]
+    private AssetReference[] cardFronts;
+
+    private AsyncOperationHandle resourceHandle;
+
+
+    private int cardidx = 0;
+
     private float width = 0;
     private float height = 0;
 
     private void Awake()
     {
         int i;
-        sprites = Resources.LoadAll<Sprite>("Textures/Card");
         RectTransform rect = GetComponent<RectTransform>();
         width = rect.rect.width;
         height = rect.rect.height;
@@ -67,18 +77,18 @@ public class Deck : MonoBehaviour
         float offset = Constants.SCREEN_OFFSET_W - 1;
         for (i = 0; i < 4; i++)
         {
-            pile[i].rect.anchoredPosition = new Vector2(colwidth * (i + 4) + offset, -100);
+            pile[i].GetRect().anchoredPosition = new Vector2(colwidth * (i + 4) + offset, -100);
             pile[i].zoneMode = DropZoneMode.Pile;
             pile[i].colIdx = i;
 
-            work[i].rect.anchoredPosition = new Vector2(colwidth * i + offset, -100);
+            work[i].GetRect().anchoredPosition = new Vector2(colwidth * i + offset, -100);
             work[i].zoneMode = DropZoneMode.Work;
             work[i].colIdx = i;
         }
 
         for (i = 0; i < 8; i++)
         {
-            colPile[i].rect.anchoredPosition = new Vector2(colwidth * i + offset, Constants.SCREEN_OFFSET_H);
+            colPile[i].GetRect().anchoredPosition = new Vector2(colwidth * i + offset, Constants.SCREEN_OFFSET_H);
             colPile[i].zoneMode = DropZoneMode.Deck;
             colPile[i].colIdx = i;
         }
@@ -87,10 +97,16 @@ public class Deck : MonoBehaviour
     private void OnDeal()
     {
         //deal.gameObject.SetActive(false);
+        ChangeCardFront();
+    }
+
+    private void ContinueDealing()
+    {
         DoDeal(10);
         DrawDeck();
         MarkAllCardsOnDeck();
     }
+
     private void OnGameOver()
     {
         deal.gameObject.SetActive(true);
@@ -113,9 +129,9 @@ public class Deck : MonoBehaviour
             foreach (Card item in cards)
             {
                 offset.y = -Constants.CARD_PADDING_H * i + Constants.SCREEN_OFFSET_H;
-                item.rect.anchoredPosition = offset;
-                item.rect.SetAsLastSibling();
-                item.draggable.enabled = false;
+                item.GetRect().anchoredPosition = offset;
+                item.GetRect().SetAsLastSibling();
+                item.GetDraggable().enabled = false;
                 if (cards.Last.Value == item)
                 {
                     item.GetComponent<Draggable>().enabled = true;
@@ -138,7 +154,7 @@ public class Deck : MonoBehaviour
                     column[dropee.colIdx].RemoveLast();
                     if (column[dropee.colIdx].Last != null)
                     {
-                        column[dropee.colIdx].Last.Value.draggable.enabled = true;
+                        column[dropee.colIdx].Last.Value.GetDraggable().enabled = true;
 		            }
                 }
             }
@@ -150,12 +166,12 @@ public class Deck : MonoBehaviour
             if (dropzone.zoneMode == DropZoneMode.Deck)
             {
                 dropee.colIdx = dropzone.colIdx;
-                dropee.self.draggable.enabled = true;
+                dropee.GetCard().GetDraggable().enabled = true;
                 dropee.zoneMode = DropZoneMode.Deck;
                 if (column[dropzone.colIdx].Last != null)
                 {
-                    column[dropzone.colIdx].Last.Value.draggable.enabled = false;
-                    column[dropzone.colIdx].AddLast(dropee.self);
+                    column[dropzone.colIdx].Last.Value.GetDraggable().enabled = false;
+                    column[dropzone.colIdx].AddLast(dropee.GetCard());
                 }
             }
             else if (dropzone.zoneMode == DropZoneMode.Pile)
@@ -180,7 +196,7 @@ public class Deck : MonoBehaviour
         {
             foreach (Card card in col)
             {
-                DropZone pile = card.dropZone;
+                DropZone pile = card.GetDropZone();
                 pile.zoneMode = DropZoneMode.Deck;
                 pile.colIdx = idx;
             }
@@ -202,7 +218,8 @@ public class Deck : MonoBehaviour
         int[] cards = new int[Constants.NUMBER_OF_CARDS];
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
-            cards[i]  = i;   
+            cards[i]  = i;
+            card[i].SetValue(i);
         }
         
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
@@ -213,10 +230,29 @@ public class Deck : MonoBehaviour
             Card addee = card[cards[c]];
             int colIdx = i % 8;
             column[colIdx].AddLast(addee);
-            addee.dropZone.colIdx = colIdx;
+            addee.GetDropZone().colIdx = colIdx;
 
             cards[c] = cards[cardsleft - 1];
             cardsleft -= 1;
         }
     }
+
+    void ChangeCardFront()
+    {
+        cardidx += 1;
+        cardidx %= cardFronts.Length;
+
+        if (resourceHandle.IsValid())
+        {
+           Addressables.Release(resourceHandle);
+	    }
+        
+        cardFronts[cardidx].LoadAssetAsync<Sprite[]>().Completed += (obj) =>
+	    {
+            resourceHandle = obj;
+            sprites = obj.Result;
+            ContinueDealing();
+        };
+    }
+
 }

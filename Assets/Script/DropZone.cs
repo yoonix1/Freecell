@@ -13,14 +13,11 @@ public class DropZone : MonoBehaviour, IDropHandler
     public int colIdx;
 
     // all cards are dropzones since we can put a card on top of card.
-    [System.NonSerialized]
-    public Card self;
+    private Card self;
+    private RectTransform rect;
 
-    [System.NonSerialized]
-    public RectTransform rect;
-
-    [System.NonSerialized]
-    public Card lastCard;
+    public RectTransform GetRect() { return rect;  }
+    public Card GetCard() { return self;  }
 
     void Awake()
     {
@@ -42,9 +39,9 @@ public class DropZone : MonoBehaviour, IDropHandler
                     anchorPos.y += deckVoffset;
                 }
 
-                dropee.rect.anchoredPosition = anchorPos;
-                dropee.rect.SetAsLastSibling();
-                dropee.draggable.isDropped = true;
+                dropee.GetRect().anchoredPosition = anchorPos;
+                dropee.GetRect().SetAsLastSibling();
+                dropee.GetDraggable().isDropped = true;
                 theDeck.UpdateDropZones(gameObject, eventData.pointerDrag);
             }
         }

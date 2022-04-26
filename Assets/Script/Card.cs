@@ -9,14 +9,13 @@ public class Card : MonoBehaviour
     public Suit suit ;
     public int value;
 
-    [System.NonSerialized]
-    public DropZone dropZone;
+    private DropZone dropZone;
+    private Draggable draggable;
+    private RectTransform rect;
 
-    [System.NonSerialized]
-    public Draggable draggable;
-
-    [System.NonSerialized]
-    public RectTransform rect;
+    public DropZone GetDropZone() { return dropZone;  }
+    public Draggable GetDraggable() { return draggable;  }
+    public RectTransform GetRect() { return rect;  }
 
     private string[] suitToString = new[] {"H", "S", "D", "C"};
 

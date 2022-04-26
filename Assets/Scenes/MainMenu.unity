@@ -694,6 +694,23 @@ MonoBehaviour:
   deal: {fileID: 1521773799}
   objPile: {fileID: 1318674661}
   objCard: {fileID: 843548337}
+  cardFronts:
+  - m_AssetGUID: df9b7cd8c9c2e4a42a1ca98af707b15d
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 34f0f7f1499284b3b96fb69ea3dc0438
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 5b80bbb84d7644226abbd0177a0b6478
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: bc75afb3dd1ca4bd5b2869f51d4d62f0
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
 --- !u!114 &2040945829
 MonoBehaviour:
   m_ObjectHideFlags: 0
