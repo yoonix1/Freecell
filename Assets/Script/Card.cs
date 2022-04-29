@@ -5,7 +5,6 @@ using UnityEngine;
 public class Card : MonoBehaviour
 {
     public UnityEngine.UI.Image img;
-    public Deck theDeck;
     public Suit suit ;
     public int value;
 
@@ -16,6 +15,15 @@ public class Card : MonoBehaviour
     public DropZone GetDropZone() { return dropZone;  }
     public Draggable GetDraggable() { return draggable;  }
     public RectTransform GetRect() { return rect;  }
+
+    public Deck theDeck
+    {
+        get => dropZone.theDeck;
+        set 
+    	{
+            dropZone.theDeck = value;
+	    }
+    }
 
     private string[] suitToString = new[] {"H", "S", "D", "C"};
 
@@ -28,6 +36,7 @@ public class Card : MonoBehaviour
 
     public void SetValue(int mixedValue)
     {
+        theDeck.GetSprite(mixedValue);
         img.sprite = theDeck.GetSprite(mixedValue);
         value = mixedValue % 13 + 1;
         suit = (Suit)(mixedValue / 13);

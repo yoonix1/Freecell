@@ -645,9 +645,6 @@
  <Reference Include="PsdPlugin">
  <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/PsdPlugin.dll</HintPath>
  </Reference>
- <Reference Include="Unity.Addressables">
- <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/Unity.Addressables.dll</HintPath>
- </Reference>
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
  </Reference>
@@ -659,6 +656,9 @@
  </Reference>
  <Reference Include="Unity.XR.Management.Editor">
  <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/Unity.XR.Management.Editor.dll</HintPath>
+ </Reference>
+ <Reference Include="Unity.Addressables">
+ <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/Unity.Addressables.dll</HintPath>
  </Reference>
  <Reference Include="Unity.Timeline">
  <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/Unity.Timeline.dll</HintPath>
@@ -701,6 +701,9 @@
  </Reference>
  <Reference Include="Unity.ResourceManager">
  <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/Unity.ResourceManager.dll</HintPath>
+ </Reference>
+ <Reference Include="UnityEditor.UIBuilderModule">
+ <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/UnityEditor.UIBuilderModule.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.SpatialTracking">
  <HintPath>/Users/yoon.lee/Documents/CodeTutorial/Freecell/Library/ScriptAssemblies/UnityEngine.SpatialTracking.dll</HintPath>

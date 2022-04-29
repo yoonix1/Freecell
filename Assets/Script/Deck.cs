@@ -6,16 +6,27 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
-using Debug = UnityEngine.Debug;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using Debug = UnityEngine.Debug;
+
+using UnityEditor;
 
 public class Deck : MonoBehaviour
 {
     public Button deal;
+    public Button options;
 
     public DropZone objPile;
     public Card objCard;
 
+    public Text dispTime;
+    public Text dispScore;
+
+    [SerializeField]
+    private AssetReference[] cardFronts;
+
+    [SerializeField]
+    private AudioSource[] audioSources;
 
     private Card[] card = new Card[Constants.NUMBER_OF_CARDS];
 
@@ -23,19 +34,15 @@ public class Deck : MonoBehaviour
     private DropZone[] pile = new DropZone[4];
     private DropZone[] work = new DropZone[4];
     private DropZone[] colPile = new DropZone[8];
-    
-    private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
 
-    [SerializeField]
-    private AssetReference[] cardFronts;
+    private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
 
     private AsyncOperationHandle resourceHandle;
 
-
     private int cardidx = 0;
-
     private float width = 0;
     private float height = 0;
+    private float playTime;
 
     private void Awake()
     {
@@ -44,20 +51,31 @@ public class Deck : MonoBehaviour
         width = rect.rect.width;
         height = rect.rect.height;
 
+        Color color1 = new Color32(32,62,72,98);
+        Color color2 = new Color32(174,161,82,76);
+
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
             card[i] = Instantiate(objCard, Vector3.zero, Quaternion.identity, rect);
+            card[i].theDeck = this;
         }
 
         for (i = 0; i < 4; i++)
         {
             pile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
+            pile[i].theDeck = this;
+            pile[i].SetColor(color1);
+
             work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
-	    }
+            work[i].SetColor(color2);
+            work[i].theDeck = this;
+        }
 
         for (i = 0; i < 8; i++)
         {
             colPile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
+            colPile[i].SetColor(color2);
+            colPile[i].theDeck = this;
             column[i] = new LinkedList<Card>();
         }
     }
@@ -65,46 +83,72 @@ public class Deck : MonoBehaviour
     void Start()
     {
         int i;
-        deal.onClick.AddListener(OnDeal);
-
 
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
             card[i].SetValue(i);
         }
 
-        float colwidth = Constants.CARD_PADDING_W;
-        float offset = Constants.SCREEN_OFFSET_W - 1;
+
+        float colwidth = Constants.PILE_GAP + Constants.CARD_WIDTH;
         for (i = 0; i < 4; i++)
         {
-            pile[i].GetRect().anchoredPosition = new Vector2(colwidth * (i + 4) + offset, -100);
+            pile[i].GetRect().anchoredPosition = new Vector2(colwidth * i + Constants.SCREEN_OFFSET_PILE, Constants.SCREEN_OFFSET_H);
             pile[i].zoneMode = DropZoneMode.Pile;
             pile[i].colIdx = i;
 
-            work[i].GetRect().anchoredPosition = new Vector2(colwidth * i + offset, -100);
+            work[i].GetRect().anchoredPosition = new Vector2(colwidth * i + Constants.SCREEN_OFFSET_W, Constants.SCREEN_OFFSET_H);
             work[i].zoneMode = DropZoneMode.Work;
             work[i].colIdx = i;
         }
 
+        colwidth = Constants.CARD_GAP + Constants.CARD_WIDTH;
         for (i = 0; i < 8; i++)
         {
-            colPile[i].GetRect().anchoredPosition = new Vector2(colwidth * i + offset, Constants.SCREEN_OFFSET_H);
+            colPile[i].GetRect().anchoredPosition = new Vector2(colwidth * i + Constants.SCREEN_OFFSET_W, Constants.SCREEN_CARDS_OFFSET_H);
             colPile[i].zoneMode = DropZoneMode.Deck;
             colPile[i].colIdx = i;
         }
     }
 
-    private void OnDeal()
+    public void Update()
+    {
+        playTime += Time.deltaTime;
+
+        int seconds = (int)playTime;
+
+        String myTime;
+
+        myTime = String.Format("{0}:{1,2:D2}",seconds / 60, seconds % 60);
+        dispTime.text = myTime;
+    }
+
+    public void OnDeal()
     {
         //deal.gameObject.SetActive(false);
         ChangeCardFront();
+        // after the card texture is loaded this function will call ContinueDealing
     }
+
+    public void PlaySound(SoundEffect se)
+    {
+        switch (se)
+        {
+            case SoundEffect.CardDropped:
+                audioSources[(int)se].Play();
+                break;
+            default:
+                break;
+        }
+    }
+
 
     private void ContinueDealing()
     {
         DoDeal(10);
         DrawDeck();
         MarkAllCardsOnDeck();
+        playTime = 0;
     }
 
     private void OnGameOver()
@@ -124,11 +168,11 @@ public class Deck : MonoBehaviour
         int icol = 0;
         foreach (LinkedList<Card> cards in column)
         {
-            offset.x = icol * Constants.CARD_PADDING_W + Constants.SCREEN_OFFSET_W;
+            offset.x = icol * (Constants.CARD_GAP + Constants.CARD_WIDTH) + Constants.SCREEN_OFFSET_W;
             i = 0;
             foreach (Card item in cards)
             {
-                offset.y = -Constants.CARD_PADDING_H * i + Constants.SCREEN_OFFSET_H;
+                offset.y = -(Constants.CARD_GAP*2) * i + Constants.SCREEN_CARDS_OFFSET_H;
                 item.GetRect().anchoredPosition = offset;
                 item.GetRect().SetAsLastSibling();
                 item.GetDraggable().enabled = false;
@@ -139,6 +183,67 @@ public class Deck : MonoBehaviour
                 i += 1;
             }
             icol += 1;
+        }
+    }
+
+    public bool CanBeDropped(DropZoneMode zoneMode, Card dropzoneCard, Card dropee)
+    {
+        DropZone dropeePile = dropee.GetComponent<DropZone>();
+        if (dropeePile.zoneMode == DropZoneMode.Pile)
+        {
+            return false;
+        }
+        else if (zoneMode == DropZoneMode.Deck)
+        {
+            if (dropzoneCard == null)
+            {
+                return true;
+            }
+            if (dropzoneCard.value == dropee.value + 1)
+            {
+                if ((dropzoneCard.suit == Suit.CLUBS || dropzoneCard.suit == Suit.SPADE)
+                    && (dropee.suit == Suit.DIAMOND || dropee.suit == Suit.HEART))
+                {
+                    return true;
+                }
+                if ((dropzoneCard.suit == Suit.DIAMOND || dropzoneCard.suit == Suit.HEART)
+                         && (dropee.suit == Suit.CLUBS || dropee.suit == Suit.SPADE))
+                {
+                    return true;
+                }
+                return false;
+            }
+            return false;
+        }
+        else if (zoneMode == DropZoneMode.Work)
+        {
+            if (dropzoneCard == null)
+            {
+                return true;
+            }
+            return false;
+        }
+        else if (zoneMode == DropZoneMode.Pile)
+        {
+            if (dropzoneCard == null)
+            {
+                if (dropee.value == 1)
+                {
+                    return true;
+                }
+            }
+            else
+            {
+                if (dropzoneCard.value + 1 == dropee.value && dropzoneCard.suit == dropee.suit)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        else
+        {
+            return false;
         }
     }
 
@@ -155,7 +260,7 @@ public class Deck : MonoBehaviour
                     if (column[dropee.colIdx].Last != null)
                     {
                         column[dropee.colIdx].Last.Value.GetDraggable().enabled = true;
-		            }
+                    }
                 }
             }
         }
@@ -177,8 +282,8 @@ public class Deck : MonoBehaviour
             else if (dropzone.zoneMode == DropZoneMode.Pile)
             {
                 dropzone.enabled = false;
-                dropee.enabled = true; 
-                //dropee.GetComponent<Draggable>().enabled = false;
+                dropee.enabled = true;
+                //dropee.GetCard().GetDraggable().enabled = false;
                 //dropee.GetComponent<CanvasGroup>().blocksRaycasts = false;
                 dropee.zoneMode = DropZoneMode.Pile;
             }
@@ -209,19 +314,19 @@ public class Deck : MonoBehaviour
         int i;
         uint c;
         uint cardsleft = Constants.NUMBER_OF_CARDS;
-        
-        foreach(LinkedList<Card> col in column)
+
+        foreach (LinkedList<Card> col in column)
         {
             col.Clear();
         }
-        
+
         int[] cards = new int[Constants.NUMBER_OF_CARDS];
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
-            cards[i]  = i;
+            cards[i] = i;
             card[i].SetValue(i);
         }
-        
+
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
             seed = (seed * 214013 + 2531011) & 0xffffffff;
@@ -237,6 +342,7 @@ public class Deck : MonoBehaviour
         }
     }
 
+    //static int debugcount = 0;
     void ChangeCardFront()
     {
         cardidx += 1;
@@ -244,15 +350,16 @@ public class Deck : MonoBehaviour
 
         if (resourceHandle.IsValid())
         {
-           Addressables.Release(resourceHandle);
-	    }
-        
+            Addressables.Release(resourceHandle);
+        }
+
+
         cardFronts[cardidx].LoadAssetAsync<Sprite[]>().Completed += (obj) =>
-	    {
+        {
             resourceHandle = obj;
             sprites = obj.Result;
             ContinueDealing();
+            //Debug.Log("Loaded cards" + debugcount); debugcount = debugcount +1
         };
     }
-
 }

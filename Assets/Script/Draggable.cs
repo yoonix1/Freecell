@@ -5,14 +5,11 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
-
 {
     public Canvas canvas;
     public bool isDropped; // if dropped to a valid location other wise we will force back to starting achor position
 
-
-    [System.NonSerialized]
-    public Card card;
+    private Card card;
 
     private CanvasGroup canvasGroup;
     private Vector2 startingPos;
@@ -21,8 +18,9 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
     {
         canvasGroup = gameObject.GetComponent<CanvasGroup>();
         card = GetComponent<Card>();
+        canvas = FindFirstCanvas(card.GetRect());
     }
-    
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         startingPos = card.GetRect().anchoredPosition;
@@ -55,6 +53,24 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
         {
             card.GetRect().anchoredPosition = startingPos;
         }
+
+        card.theDeck.PlaySound(SoundEffect.CardDropped);
     }
+
+    private Canvas FindFirstCanvas(RectTransform rect)
+    {
+        while(rect!= null)
+        {
+            Canvas rtn;
+            if (rect.TryGetComponent<Canvas>(out rtn))
+            {
+                return rtn;
+            }
+            rect = rect.parent.GetComponent<RectTransform>();
+	    }
+
+        return null;
+    }
+
 
 }

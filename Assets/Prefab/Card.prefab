@@ -69,7 +69,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 5189691121816951081, guid: ed15803cc73284325a1f990daace9e34, type: 3}
+  m_Sprite: {fileID: 0}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -109,6 +109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   canvas: {fileID: 0}
   isDropped: 0
+  cardDropped: {fileID: 0}
 --- !u!225 &1312797600879432008
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -130,9 +131,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1312797600879432018}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff5b69f4c12d64048953c523306a4f70, type: 3}
+  m_Script: {fileID: 11500000, guid: 36c313a21c3f842d7b790b048fa4fb64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  deckVoffset: -50
   theDeck: {fileID: 0}
   zoneMode: 0
+  colIdx: 0
