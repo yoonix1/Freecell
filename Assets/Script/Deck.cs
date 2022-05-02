@@ -44,6 +44,8 @@ public class Deck : MonoBehaviour
     private float height = 0;
     private float playTime;
 
+    private float numAvailableSlots = 4;
+
     private void Awake()
     {
         int i;
@@ -61,14 +63,16 @@ public class Deck : MonoBehaviour
         }
 
         for (i = 0; i < 4; i++)
+        { 
+            work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
+            work[i].SetColor(color2);
+            work[i].theDeck = this;
+        }
+        for (i = 0; i < 4; i++)
         {
             pile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
             pile[i].theDeck = this;
             pile[i].SetColor(color1);
-
-            work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
-            work[i].SetColor(color2);
-            work[i].theDeck = this;
         }
 
         for (i = 0; i < 8; i++)
@@ -128,6 +132,23 @@ public class Deck : MonoBehaviour
         //deal.gameObject.SetActive(false);
         ChangeCardFront();
         // after the card texture is loaded this function will call ContinueDealing
+    }
+
+    public LinkedList<Card> GetColumnAfter(Card c)
+    {
+        int idx = c.GetDropZone().colIdx;
+        LinkedList<Card> result = new LinkedList<Card>();
+        LinkedListNode<Card> toMove = column[idx].Find(c);
+
+
+        while (toMove.Next != null)
+        {
+            LinkedListNode<Card> item = toMove.Next;
+            column[idx].Remove(item);
+            result.AddLast(item);
+	    }
+
+        return result;
     }
 
     public void PlaySound(SoundEffect se)
@@ -193,7 +214,7 @@ public class Deck : MonoBehaviour
         {
             return false;
         }
-        else if (zoneMode == DropZoneMode.Deck)
+        else if (zoneMode == DropZoneMode.Deck || zoneMode == DropZoneMode.Sorted)
         {
             if (dropzoneCard == null)
             {
@@ -219,7 +240,7 @@ public class Deck : MonoBehaviour
         {
             if (dropzoneCard == null)
             {
-                return true;
+                return !dropee.GetDraggable().IsStackMove();
             }
             return false;
         }
@@ -229,14 +250,14 @@ public class Deck : MonoBehaviour
             {
                 if (dropee.value == 1)
                 {
-                    return true;
+                    return !dropee.GetDraggable().IsStackMove();
                 }
             }
             else
             {
                 if (dropzoneCard.value + 1 == dropee.value && dropzoneCard.suit == dropee.suit)
                 {
-                    return true;
+                    return !dropee.GetDraggable().IsStackMove();
                 }
             }
             return false;
@@ -247,12 +268,38 @@ public class Deck : MonoBehaviour
         }
     }
 
-    public void UpdateDropZones(GameObject to, GameObject moved)
+    public void MoveStackTo(Card from, LinkedList<Card> stack)
+    {
+        RectTransform orig = from.GetRect();
+        int colIdx = from.GetDropZone().colIdx;
+
+        if (stack != null)
+        {
+            int count = 1;
+            while (stack.First != null)
+            {
+                LinkedListNode<Card> toRemove = stack.First;
+                stack.RemoveFirst();
+                column[colIdx].AddLast(toRemove);
+
+                Card card = toRemove.Value;
+                RectTransform rect = card.GetRect();
+                Draggable draggable = card.GetDraggable();
+                rect.SetAsLastSibling();
+                rect.anchoredPosition = new Vector2(orig.anchoredPosition.x, orig.anchoredPosition.y - count*Constants.PILE_OFFSET);
+                draggable.Dropped(colIdx);
+
+                count++;
+            }
+        }
+    }
+
+    public void UpdateDropZones(DropZone dropzone, Draggable moved)
     {
         DropZone dropee = moved.GetComponent<DropZone>();
         if (dropee)
         {
-            if (dropee.zoneMode == DropZoneMode.Deck)
+            if (dropee.IsOnDeck())
             {
                 if (column[dropee.colIdx].Last != null)
                 {
@@ -263,35 +310,73 @@ public class Deck : MonoBehaviour
                     }
                 }
             }
+
+            if (dropee.zoneMode == DropZoneMode.Work)
+            {
+                numAvailableSlots++;
+	        }
         }
 
-        DropZone dropzone = to.GetComponent<DropZone>();
         if (dropzone)
         {
-            if (dropzone.zoneMode == DropZoneMode.Deck)
+            if (dropzone.IsOnDeck())
             {
                 dropee.colIdx = dropzone.colIdx;
                 dropee.GetCard().GetDraggable().enabled = true;
-                dropee.zoneMode = DropZoneMode.Deck;
-                if (column[dropzone.colIdx].Last != null)
-                {
-                    column[dropzone.colIdx].Last.Value.GetDraggable().enabled = false;
-                    column[dropzone.colIdx].AddLast(dropee.GetCard());
-                }
+                dropee.zoneMode = DropZoneMode.Sorted;
+                dropzone.zoneMode = DropZoneMode.Sorted; 
+
+                Card movingCard = dropee.GetCard();
+                column[dropzone.colIdx].AddLast(movingCard);
+                movingCard.GetRect().SetAsLastSibling();
+
+                MoveStackTo(movingCard, movingCard.GetDraggable().GetStack());
             }
             else if (dropzone.zoneMode == DropZoneMode.Pile)
             {
-                dropzone.enabled = false;
-                dropee.enabled = true;
-                //dropee.GetCard().GetDraggable().enabled = false;
-                //dropee.GetComponent<CanvasGroup>().blocksRaycasts = false;
-                dropee.zoneMode = DropZoneMode.Pile;
+                {
+                    dropzone.enabled = false;
+                    dropee.enabled = true;
+                    //dropee.GetCard().GetDraggable().enabled = false;
+                    //dropee.GetComponent<CanvasGroup>().blocksRaycasts = false;
+                    dropee.zoneMode = DropZoneMode.Pile;
+                }
             }
             else if (dropzone.zoneMode == DropZoneMode.Work)
             {
-                dropee.zoneMode = DropZoneMode.Work;
+                if (dropee.GetCard().GetDraggable().GetStack() == null
+                    || dropee.GetCard().GetDraggable().GetStack().Count == 0)
+                { 
+                    dropee.zoneMode = DropZoneMode.Work;
+                    numAvailableSlots--;
+                }
             }
         }
+
+        dispScore.text = numAvailableSlots.ToString();
+
+        for( int i = 0; i < 8; i++)
+        {
+            int j = 0;
+            int totalCardsPerColumn = column[i].Count;
+            foreach(Card c in column[i])
+            {
+                if (j + numAvailableSlots >= totalCardsPerColumn - 1 && c.GetDropZone().zoneMode == DropZoneMode.Sorted) 
+		        {
+                    c.GetDraggable().enabled = true;
+		        }
+                else
+                { 
+                    c.GetDraggable().enabled = false;
+		        }
+
+                column[i].Last.Value.GetDraggable().enabled = true;
+
+                j++;
+	        }
+
+    	}
+
     }
 
     private void MarkAllCardsOnDeck()

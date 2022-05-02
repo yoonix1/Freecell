@@ -43,4 +43,10 @@ public class Card : MonoBehaviour
         
         name = suitToString[(int)suit] + value.ToString();
     }
+
+    public void MoveStackHere(LinkedList<Card> cards)
+    {
+        theDeck.MoveStackTo(this, cards);
+    }
+
 }

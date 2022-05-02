@@ -32,6 +32,7 @@ public enum DropZoneMode
     Work,
     Pile, 
     Deck,
+    Sorted, // sorted cards on deck
 }
 
 public enum SoundEffect

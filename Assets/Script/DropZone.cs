@@ -22,6 +22,8 @@ public class DropZone : MonoBehaviour, IDropHandler
 
     public void SetColor(Color c) { img.color = c; }
 
+    public Boolean IsOnDeck() { return zoneMode == DropZoneMode.Deck || zoneMode == DropZoneMode.Sorted; }
+
     void Awake()
     {
         rect = GetComponent<RectTransform>();
@@ -39,7 +41,7 @@ public class DropZone : MonoBehaviour, IDropHandler
             if (theDeck.CanBeDropped(zoneMode, self, dropee))
             {
                 Vector2 anchorPos = rect.anchoredPosition;
-                if (zoneMode == DropZoneMode.Deck && self != null)
+                if ((zoneMode == DropZoneMode.Deck || zoneMode == DropZoneMode.Sorted) && self != null)
                 {
                     anchorPos.y += -Constants.PILE_OFFSET;
                 }
@@ -47,7 +49,7 @@ public class DropZone : MonoBehaviour, IDropHandler
                 dropee.GetRect().anchoredPosition = anchorPos;
                 dropee.GetRect().SetAsLastSibling();
                 dropee.GetDraggable().isDropped = true;
-                theDeck.UpdateDropZones(gameObject, eventData.pointerDrag);
+                theDeck.UpdateDropZones(this, dropee.GetDraggable());
             }
         }
     }

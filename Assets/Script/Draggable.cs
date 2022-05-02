@@ -13,6 +13,25 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
 
     private CanvasGroup canvasGroup;
     private Vector2 startingPos;
+
+    private LinkedList<Card> stackToMove;
+
+    public LinkedList<Card> GetStack()
+    {
+        return stackToMove;
+    }
+
+    public bool IsStackMove()
+    {
+        return (stackToMove != null && stackToMove.Count > 0);
+    }
+
+    public void Dropped(int colIdx)
+    {
+        canvasGroup.alpha = 1.0f;
+        card.GetDropZone().colIdx = colIdx;
+    }
+
     
     void Awake()
     {
@@ -23,37 +42,72 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        Debug.Log("BeginDrag" + isDropped);
         startingPos = card.GetRect().anchoredPosition;
         isDropped = false;
         
         card.GetRect().SetAsLastSibling();
         canvasGroup.blocksRaycasts = false;
+        canvasGroup.alpha = 0.3f;
+
+        if (card.GetDropZone().zoneMode == DropZoneMode.Sorted)
+        {
+            stackToMove = card.theDeck.GetColumnAfter(card);
+            foreach(Card c in stackToMove)
+            {
+                c.GetRect().SetAsLastSibling();
+                c.GetDraggable().canvasGroup.alpha = 0.3f;
+	        }
+            Debug.Log("Added Stack" + stackToMove.Count);
+	    }
+        else
+        {
+            stackToMove = null;
+	    }
     }
     
     public void OnDrag(PointerEventData eventData)
     {
-        card.GetRect().anchoredPosition += eventData.delta / canvas.scaleFactor;
+        Debug.Log("OnDrag" + isDropped);
+        Vector2 amount = eventData.delta / canvas.scaleFactor;
+        card.GetRect().anchoredPosition += amount;
+
+        if (stackToMove != null)
+        { 
+            Debug.Log("OnDrag" + stackToMove.Count);
+            foreach( Card c in stackToMove )
+            {
+                c.GetRect().anchoredPosition += amount;
+	        }
+	    }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        Debug.Log("EndDrag" + isDropped);
         canvasGroup.blocksRaycasts = true;
+        canvasGroup.alpha = 1.0f;
+
+        if (!isDropped)
+        { 
+            card.GetRect().anchoredPosition = startingPos;
+            card.MoveStackHere(stackToMove);
+            if (stackToMove != null)
+            {
+                foreach (Card c in stackToMove)
+                {
+                    c.GetDraggable().canvasGroup.alpha = 1.0f;
+                }
+            }
+	    }
     }
 
     public void OnPointerDown(PointerEventData eventData)
     {
-        canvasGroup.alpha = 0.3f;
     }
     
     public void OnPointerUp(PointerEventData eventData)
     {
-        canvasGroup.alpha = 1.0f;
-        // i was just let go not dropped to a locked position
-        if (!isDropped)
-        {
-            card.GetRect().anchoredPosition = startingPos;
-        }
-
         card.theDeck.PlaySound(SoundEffect.CardDropped);
     }
 
