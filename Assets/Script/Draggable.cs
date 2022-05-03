@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
+public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler
 {
     public Canvas canvas;
     public bool isDropped; // if dropped to a valid location other wise we will force back to starting achor position
@@ -31,7 +31,6 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
         canvasGroup.alpha = 1.0f;
         card.GetDropZone().colIdx = colIdx;
     }
-
     
     void Awake()
     {
@@ -42,7 +41,7 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log("BeginDrag" + isDropped);
+        //Debug.Log("BeginDrag" + isDropped);
         startingPos = card.GetRect().anchoredPosition;
         isDropped = false;
         
@@ -58,7 +57,6 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
                 c.GetRect().SetAsLastSibling();
                 c.GetDraggable().canvasGroup.alpha = 0.3f;
 	        }
-            Debug.Log("Added Stack" + stackToMove.Count);
 	    }
         else
         {
@@ -68,13 +66,12 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
     
     public void OnDrag(PointerEventData eventData)
     {
-        Debug.Log("OnDrag" + isDropped);
+        //Debug.Log("OnDrag" + isDropped);
         Vector2 amount = eventData.delta / canvas.scaleFactor;
         card.GetRect().anchoredPosition += amount;
 
         if (stackToMove != null)
         { 
-            Debug.Log("OnDrag" + stackToMove.Count);
             foreach( Card c in stackToMove )
             {
                 c.GetRect().anchoredPosition += amount;
@@ -84,7 +81,6 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log("EndDrag" + isDropped);
         canvasGroup.blocksRaycasts = true;
         canvasGroup.alpha = 1.0f;
 
@@ -100,14 +96,6 @@ public class Draggable : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDra
                 }
             }
 	    }
-    }
-
-    public void OnPointerDown(PointerEventData eventData)
-    {
-    }
-    
-    public void OnPointerUp(PointerEventData eventData)
-    {
         card.theDeck.PlaySound(SoundEffect.CardDropped);
     }
 

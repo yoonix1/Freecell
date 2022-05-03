@@ -22,6 +22,10 @@ public class Deck : MonoBehaviour
     public Text dispTime;
     public Text dispScore;
 
+    private Boolean isPlaying = false;
+    private int score = 0;
+    private DateTime lastFinishedTime;
+
     [SerializeField]
     private AssetReference[] cardFronts;
 
@@ -45,6 +49,7 @@ public class Deck : MonoBehaviour
     private float playTime;
 
     private float numAvailableSlots = 4;
+    private System.Random rand = new System.Random();
 
     private void Awake()
     {
@@ -117,18 +122,28 @@ public class Deck : MonoBehaviour
 
     public void Update()
     {
-        playTime += Time.deltaTime;
+        if (isPlaying)
+        {
+            playTime += Time.deltaTime;
 
-        int seconds = (int)playTime;
+            int seconds = (int)playTime;
 
-        String myTime;
+            String myTime;
 
-        myTime = String.Format("{0}:{1,2:D2}",seconds / 60, seconds % 60);
-        dispTime.text = myTime;
+            myTime = String.Format("{0}:{1,2:D2}", seconds / 60, seconds % 60);
+            dispTime.text = myTime;
+
+            if (YouWon())
+            {
+                isPlaying = false;
+                deal.gameObject.SetActive(true);
+            }
+        }
     }
 
     public void OnDeal()
     {
+        deal.gameObject.SetActive(false);
         //deal.gameObject.SetActive(false);
         ChangeCardFront();
         // after the card texture is loaded this function will call ContinueDealing
@@ -166,10 +181,14 @@ public class Deck : MonoBehaviour
 
     private void ContinueDealing()
     {
-        DoDeal(10);
+        uint seed = (uint)rand.Next(0, 214013);
+        DoDeal(seed);
         DrawDeck();
         MarkAllCardsOnDeck();
         playTime = 0;
+        score = 0;
+        lastFinishedTime = DateTime.Now;
+        isPlaying = true;
     }
 
     private void OnGameOver()
@@ -322,9 +341,11 @@ public class Deck : MonoBehaviour
             if (dropzone.IsOnDeck())
             {
                 dropee.colIdx = dropzone.colIdx;
-                dropee.GetCard().GetDraggable().enabled = true;
                 dropee.zoneMode = DropZoneMode.Sorted;
-                dropzone.zoneMode = DropZoneMode.Sorted; 
+                if (dropzone.GetCard() != null)
+                {
+                    dropzone.zoneMode = DropZoneMode.Sorted;
+                }
 
                 Card movingCard = dropee.GetCard();
                 column[dropzone.colIdx].AddLast(movingCard);
@@ -334,18 +355,25 @@ public class Deck : MonoBehaviour
             }
             else if (dropzone.zoneMode == DropZoneMode.Pile)
             {
+                if (!dropee.GetCard().GetDraggable().IsStackMove())
                 {
                     dropzone.enabled = false;
                     dropee.enabled = true;
                     //dropee.GetCard().GetDraggable().enabled = false;
                     //dropee.GetComponent<CanvasGroup>().blocksRaycasts = false;
                     dropee.zoneMode = DropZoneMode.Pile;
+
+
+                    DateTime now = DateTime.Now;
+                    TimeSpan delta = now.Subtract(lastFinishedTime);
+                    double val = 30 / delta.Seconds;
+                    score += (int)Math.Ceiling(val);
+                    lastFinishedTime = now;
                 }
             }
             else if (dropzone.zoneMode == DropZoneMode.Work)
             {
-                if (dropee.GetCard().GetDraggable().GetStack() == null
-                    || dropee.GetCard().GetDraggable().GetStack().Count == 0)
+                if (!dropee.GetCard().GetDraggable().IsStackMove())
                 { 
                     dropee.zoneMode = DropZoneMode.Work;
                     numAvailableSlots--;
@@ -353,7 +381,7 @@ public class Deck : MonoBehaviour
             }
         }
 
-        dispScore.text = numAvailableSlots.ToString();
+        dispScore.text = score.ToString();
 
         for( int i = 0; i < 8; i++)
         {
@@ -365,13 +393,14 @@ public class Deck : MonoBehaviour
 		        {
                     c.GetDraggable().enabled = true;
 		        }
+                else if (j == totalCardsPerColumn - 1) 
+		        {
+                    c.GetDraggable().enabled = true; // last card is always active
+		        }
                 else
                 { 
                     c.GetDraggable().enabled = false;
 		        }
-
-                column[i].Last.Value.GetDraggable().enabled = true;
-
                 j++;
 	        }
 
@@ -390,6 +419,8 @@ public class Deck : MonoBehaviour
                 pile.zoneMode = DropZoneMode.Deck;
                 pile.colIdx = idx;
             }
+            col.Last.Value.GetDropZone().zoneMode = DropZoneMode.Sorted;
+
             idx++;
         }
     }
@@ -425,6 +456,20 @@ public class Deck : MonoBehaviour
             cards[c] = cards[cardsleft - 1];
             cardsleft -= 1;
         }
+    }
+
+    bool YouWon()
+    {
+        int totalCardsOnDeck = 0;
+        foreach(LinkedList<Card> c in column)
+        {
+            totalCardsOnDeck += c.Count;
+	    }
+        if (numAvailableSlots == 4 && totalCardsOnDeck == 0)
+        {
+            return true;
+	    }
+        return false;
     }
 
     //static int debugcount = 0;
