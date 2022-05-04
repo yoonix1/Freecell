@@ -15,12 +15,15 @@ public class Deck : MonoBehaviour
 {
     public Button deal;
     public Button options;
+    public Menu quitMenu;
 
     public DropZone objPile;
     public Card objCard;
 
     public Text dispTime;
     public Text dispScore;
+
+    public delegate void Callback();
 
     private Boolean isPlaying = false;
     private int score = 0;
@@ -58,8 +61,8 @@ public class Deck : MonoBehaviour
         width = rect.rect.width;
         height = rect.rect.height;
 
-        Color color1 = new Color32(32,62,72,98);
-        Color color2 = new Color32(174,161,82,76);
+        Color color1 = new Color32(32, 62, 72, 98);
+        Color color2 = new Color32(174, 161, 82, 76);
 
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
@@ -68,7 +71,7 @@ public class Deck : MonoBehaviour
         }
 
         for (i = 0; i < 4; i++)
-        { 
+        {
             work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
             work[i].SetColor(color2);
             work[i].theDeck = this;
@@ -96,6 +99,7 @@ public class Deck : MonoBehaviour
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
             card[i].SetValue(i);
+            card[i].GetRect().anchoredPosition = new Vector2(0, height / 2 + Constants.CARD_HEIGHT);
         }
 
 
@@ -135,14 +139,14 @@ public class Deck : MonoBehaviour
 
             if (YouWon())
             {
-                isPlaying = false;
-                deal.gameObject.SetActive(true);
+                _stopGame();
             }
         }
     }
 
     public void OnDeal()
     {
+        HideCards();
         deal.gameObject.SetActive(false);
         //deal.gameObject.SetActive(false);
         ChangeCardFront();
@@ -161,7 +165,7 @@ public class Deck : MonoBehaviour
             LinkedListNode<Card> item = toMove.Next;
             column[idx].Remove(item);
             result.AddLast(item);
-	    }
+        }
 
         return result;
     }
@@ -202,6 +206,11 @@ public class Deck : MonoBehaviour
 
     public void DrawDeck()
     {
+        StartCoroutine(_CoroutineDrawDeck());
+    }
+
+    private IEnumerator _CoroutineDrawDeck()
+    {
         RectTransform myRect = GetComponent<RectTransform>();
         Vector2 offset = Vector2.zero;
         int i = 0;
@@ -213,7 +222,11 @@ public class Deck : MonoBehaviour
             foreach (Card item in cards)
             {
                 offset.y = -(Constants.CARD_GAP*2) * i + Constants.SCREEN_CARDS_OFFSET_H;
-                item.GetRect().anchoredPosition = offset;
+
+                LeanTween.moveLocal(item.gameObject, offset, 0.25f).setEaseInOutCubic().setOnComplete(_cardSound);
+                //item.GetRect().anchoredPosition = offset;
+                yield return new WaitForSeconds(0.1f);
+
                 item.GetRect().SetAsLastSibling();
                 item.GetDraggable().enabled = false;
                 if (cards.Last.Value == item)
@@ -224,6 +237,11 @@ public class Deck : MonoBehaviour
             }
             icol += 1;
         }
+    }
+
+    private void _cardSound()
+    {
+        PlaySound(SoundEffect.CardDropped);
     }
 
     public bool CanBeDropped(DropZoneMode zoneMode, Card dropzoneCard, Card dropee)
@@ -366,7 +384,7 @@ public class Deck : MonoBehaviour
 
                     DateTime now = DateTime.Now;
                     TimeSpan delta = now.Subtract(lastFinishedTime);
-                    double val = 30 / delta.Seconds;
+                    double val = 30 / Math.Max(delta.Seconds, 1.0f);
                     score += (int)Math.Ceiling(val);
                     lastFinishedTime = now;
                 }
@@ -406,6 +424,19 @@ public class Deck : MonoBehaviour
 
     	}
 
+    }
+
+    private void HideCards()
+    { 
+        foreach(Card c in card)
+        {
+            c.GetRect().anchoredPosition = new Vector2(0, height / 2 + Constants.CARD_HEIGHT);
+	    }
+
+        foreach(DropZone z in pile)
+        {
+            z.enabled = true;
+	    }
     }
 
     private void MarkAllCardsOnDeck()
@@ -472,6 +503,20 @@ public class Deck : MonoBehaviour
         return false;
     }
 
+    public void ShowMenu()
+    {
+        Callback mycallback = new Callback(this._stopGame);
+        quitMenu.Show(mycallback);
+    }
+
+
+    private void _stopGame()
+    { 
+        isPlaying = false;
+        deal.gameObject.SetActive(true);
+    }
+    
+
     //static int debugcount = 0;
     void ChangeCardFront()
     {
@@ -482,7 +527,6 @@ public class Deck : MonoBehaviour
         {
             Addressables.Release(resourceHandle);
         }
-
 
         cardFronts[cardidx].LoadAssetAsync<Sprite[]>().Completed += (obj) =>
         {
