@@ -133,7 +133,6 @@ public class Deck : MonoBehaviour
             int seconds = (int)playTime;
 
             String myTime;
-
             myTime = String.Format("{0}:{1,2:D2}", seconds / 60, seconds % 60);
             dispTime.text = myTime;
 
@@ -148,9 +147,7 @@ public class Deck : MonoBehaviour
     {
         HideCards();
         deal.gameObject.SetActive(false);
-        //deal.gameObject.SetActive(false);
         ChangeCardFront();
-        // after the card texture is loaded this function will call ContinueDealing
     }
 
     public LinkedList<Card> GetColumnAfter(Card c)
@@ -158,7 +155,6 @@ public class Deck : MonoBehaviour
         int idx = c.GetDropZone().colIdx;
         LinkedList<Card> result = new LinkedList<Card>();
         LinkedListNode<Card> toMove = column[idx].Find(c);
-
 
         while (toMove.Next != null)
         {
@@ -183,7 +179,7 @@ public class Deck : MonoBehaviour
     }
 
 
-    private void ContinueDealing()
+    private void InitGame()
     {
         uint seed = (uint)rand.Next(0, 214013);
         DoDeal(seed);
@@ -193,12 +189,10 @@ public class Deck : MonoBehaviour
         score = 0;
         lastFinishedTime = DateTime.Now;
         isPlaying = true;
+        numAvailableSlots = 4;
+        dispScore.text = score.ToString();
     }
 
-    private void OnGameOver()
-    {
-        deal.gameObject.SetActive(true);
-    }
     public Sprite GetSprite(int idx)
     {
         return sprites[idx];
@@ -449,6 +443,7 @@ public class Deck : MonoBehaviour
                 DropZone pile = card.GetDropZone();
                 pile.zoneMode = DropZoneMode.Deck;
                 pile.colIdx = idx;
+                pile.enabled = true;
             }
             col.Last.Value.GetDropZone().zoneMode = DropZoneMode.Sorted;
 
@@ -532,7 +527,7 @@ public class Deck : MonoBehaviour
         {
             resourceHandle = obj;
             sprites = obj.Result;
-            ContinueDealing();
+            InitGame();
             //Debug.Log("Loaded cards" + debugcount); debugcount = debugcount +1
         };
     }
