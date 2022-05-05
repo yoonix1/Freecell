@@ -32,6 +32,11 @@ public class DropZone : MonoBehaviour, IDropHandler
         img = GetComponent<Image>();
     }
 
+    public void SetCard(Card card)
+    {
+        self = card;
+    }
+
     public void OnDrop(PointerEventData eventData)
     {
         if (eventData.pointerDrag != null)
