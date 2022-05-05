@@ -512,6 +512,7 @@ public class Deck : MonoBehaviour
 
     private void _AutoDropCompleted()
     {
+        PlaySound(SoundEffect.CardDropped);
         UpdateMovableCards();
     }
 
