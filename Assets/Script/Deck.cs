@@ -441,6 +441,21 @@ public class Deck : MonoBehaviour
         int j = 0;
         int i = 0;
         Card found = null;
+
+        int minCardValue = 13;
+        foreach(DropZone p in pile)
+        { 
+            Card c = p.GetCard();
+            if ( c == null )
+            {
+                minCardValue = 0;
+            }
+            else if (c.value < minCardValue)
+            {
+                minCardValue = c.value;
+	        }
+	    }
+
         while (found == null && i < 8)
         {
             if (column[i].Last != null)
@@ -461,7 +476,7 @@ public class Deck : MonoBehaviour
                     }
                     else
                     {
-                        if (temp.suit == pileCard.suit && temp.value == pileCard.value + 1)
+                        if (temp.suit == pileCard.suit && temp.value == pileCard.value + 1 && temp.value <= minCardValue + 2)
                         {
                             found = temp;
                             break;
