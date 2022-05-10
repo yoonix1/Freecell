@@ -28,11 +28,13 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
     {
         canvasGroup = GetComponent<CanvasGroup>();
 	    rect = GetComponent<RectTransform>();
+        rect.sizeDelta = new Vector2(Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
         canvas = FindFirstCanvas(rect);
     }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        Deck.Instance.IsCardMoving = true;
         //Debug.Log("BeginDrag" + isDropped);
         startingPos = GetRect().anchoredPosition;
         targetDropZone = null;
@@ -41,9 +43,14 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
         
         foreach(Card c in stackToMove)
         {
-            GetRect().SetAsLastSibling();
+            c.GetRect().SetAsLastSibling();
             c.canvasGroup.alpha = 0.3f;
-	        c.canvasGroup.blocksRaycasts = false;
+	    }
+
+        // disable card/mouse interaction
+        foreach(Card c in Deck.Instance.GetCards())
+        {
+            c.canvasGroup.blocksRaycasts = false;
 	    }
     }
     
@@ -51,23 +58,24 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
     {
         //Debug.Log("OnDrag" + isDropped);
         Vector2 amount = eventData.delta / canvas.scaleFactor;
-        GetRect().anchoredPosition += amount;
 
-        if (stackToMove != null)
-        { 
-            foreach( Card c in stackToMove )
-            {
-                c.GetRect().anchoredPosition += amount;
-	        }
+        foreach( Card c in stackToMove )
+        {
+            c.GetRect().anchoredPosition += amount;
 	    }
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        // enable card/mouse interaction
+        foreach(Card c in Deck.Instance.GetCards())
+        {
+            c.canvasGroup.blocksRaycasts = true;
+	    }
+
         foreach(Card c in stackToMove)
         {
             c.canvasGroup.alpha = 1.0f;
-	        c.canvasGroup.blocksRaycasts = true;
 	    }
 
         Vector3 targetPosition = startingPos;
@@ -78,7 +86,7 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
 	        targetDropZone = currentDropZone;
 	    }
 
-	    targetPosition = currentDropZone.GetRect().anchoredPosition;
+        targetPosition = targetDropZone.GetAnchorPos();
 	    targetDropZone.MoveTo(stackToMove);
 
 	    if (targetDropZone.IsOnDeck()) 
@@ -95,7 +103,8 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
 	    {
             targetDropZone.GetStack().Last.Value.GetRect().anchoredPosition = targetPosition;
 	    }
-        //card.theDeck.PlaySound(SoundEffect.CardDropped);
+        Deck.Instance.IsCardMoving = false;
+
     }
 
     private Canvas FindFirstCanvas(RectTransform rect)
@@ -112,23 +121,5 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
 
         return null;
     }
-
-    private void Removed()
-	{
-        if (currentDropZone.zoneMode == DropZoneMode.Work)
-        {
-            //Deck.Instance.numAvailableSlots++;
-        }
-        if (currentDropZone.zoneMode == DropZoneMode.Pile)
-        {
-            //currentDropZone.enabled = true;
-        }
-    }
-
-    private void AddedTo(DropZone pile)
-	{
-        currentDropZone = pile; 	
-	}
-
 
 }

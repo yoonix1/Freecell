@@ -2103,7 +2103,7 @@ MonoBehaviour:
   deal: {fileID: 1521773799}
   options: {fileID: 437368053}
   quitMenu: {fileID: 365744580}
-  objPile: {fileID: 267346360109632468, guid: 59940a7901e5b47b59d2d8579c796507, type: 3}
+  objPile: {fileID: 2448652693858747951, guid: 59940a7901e5b47b59d2d8579c796507, type: 3}
   objCard: {fileID: 1312797600879432013, guid: 0e6f414f446b94bd1924ef1cd5a620ce, type: 3}
   dispTime: {fileID: 1399064885}
   dispScore: {fileID: 1531755053}

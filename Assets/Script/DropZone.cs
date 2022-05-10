@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class DropZone : MonoBehaviour, IDropHandler
 {
-    public Deck theDeck;
+    public RectTransform myParentRect;
     public DropZoneMode zoneMode;
     public int colIdx;
 
@@ -14,19 +14,20 @@ public class DropZone : MonoBehaviour, IDropHandler
     private RectTransform rect;
     private Image img;
 
+    public RectTransform GetPileRect() { return myParentRect; }
     public RectTransform GetRect() { return rect;  }
     public Card GetCard() { return stack.Last?.Value;  }
     public LinkedList<Card> GetStack() { return stack; }
 
-    public void SetColor(Color c) { img.color = c; }
 
-    public Boolean IsOnDeck() { return zoneMode == DropZoneMode.Deck || zoneMode == DropZoneMode.Sorted; }
+    public Boolean IsOnDeck() { return zoneMode == DropZoneMode.Deck; }
+    public Vector3 GetAnchorPos() { return myParentRect.anchoredPosition; }
 
     void Awake()
     {
-        rect = GetComponent<RectTransform>();
-        rect.sizeDelta = new Vector2(Constants.CARD_WIDTH, Constants.CARD_HEIGHT);
         img = GetComponent<Image>();
+        rect = GetComponent<RectTransform>();
+        rect.sizeDelta = new Vector2(Constants.CARD_WIDTH + Constants.CARD_PADDING, Constants.CARD_HEIGHT + Constants.CARD_PADDING);
     }
 
     public void OnDrop(PointerEventData eventData)
@@ -71,32 +72,46 @@ public class DropZone : MonoBehaviour, IDropHandler
 
     public void MoveTo(LinkedList<Card> moving)
 	{
-        Vector2 anchorPos = rect.anchoredPosition;
-	    while(moving.First != null)
-	    {
-	        LinkedListNode<Card> item = moving.First;
-	    
-            //item.Removed();
+        Vector2 anchorPos = GetAnchorPos();
+	    LinkedListNode<Card> item = moving.First;
 
+	    while(item != null)
+	    {
 	        moving.RemoveFirst();
+
+            Deck.Instance.OnCardMoved(item.Value.GetDropZone(), this);
+
 	        stack.AddLast(item);
 	        item.Value.SetCurrentDropZone(this);
-
+            item = moving.First;
 	    }
 	}
 
     public void MoveTo(Card card) 
 	{
+        LinkedList<Card> list = card.GetDropZone().GetStack();
+        LinkedListNode<Card> node = list.Last;
+
+	    list.RemoveLast();
+
+        Deck.Instance.OnCardMoved(card.GetDropZone(), this);
+
+	    stack.AddLast(node);
+	    card.SetCurrentDropZone(this);
+    }
+
+    public void Add(Card card)
+    { 
 	    stack.AddLast(card);
 	    card.SetCurrentDropZone(this);
     }
 
-    private bool IsLegalMove(Card c)
+    public bool IsLegalMove(Card c)
 	{
 	    DropZoneMode fromZone = c.GetDropZone().zoneMode;
 	    CardFront card = (CardFront)c;
 	    CardFront self = (CardFront)stack.Last?.Value;
-        if (zoneMode == DropZoneMode.Deck || zoneMode == DropZoneMode.Sorted)
+        if (zoneMode == DropZoneMode.Deck)
         {
             if (fromZone == DropZoneMode.Pile)
             {

@@ -6,6 +6,7 @@ public class Constants
     public static float CARD_HEIGHT = 75;
 
     public static float CARD_GAP = 15;
+    public static float CARD_PADDING = 10;
     public static float PILE_GAP = 10;
     public static float PILE_OFFSET = 30;
     
@@ -32,7 +33,6 @@ public enum DropZoneMode
     Work,
     Pile, 
     Deck,
-    Sorted, // sorted cards on deck
 }
 
 public enum SoundEffect

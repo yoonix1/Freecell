@@ -8,9 +8,6 @@ public class CardFront : Card
     public Suit suit ;
     public int value;
 
-    private DropZone lastDropZone;
-
-    public DropZone GetLastDropZone() { return lastDropZone;  }
     public Card GetCard() { return this;  }
 
     public bool IsRed() { return suit == Suit.DIAMOND || suit == Suit.HEART; }
