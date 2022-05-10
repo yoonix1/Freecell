@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 1312797600879432015}
   - component: {fileID: 1312797600879432014}
   - component: {fileID: 1312797600879432013}
-  - component: {fileID: 1312797600879432012}
   - component: {fileID: 1312797600879432008}
   - component: {fileID: 8247876570571343651}
   m_Layer: 5
@@ -91,25 +90,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edf0519bb9fad4e119b59b42b27bfe98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  img: {fileID: 1312797600879432014}
-  theDeck: {fileID: 0}
-  suit: 0
-  value: 0
---- !u!114 &1312797600879432012
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1312797600879432018}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 766d8d6162c984c88be0d564d032db6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
   canvas: {fileID: 0}
   isDropped: 0
-  cardDropped: {fileID: 0}
+  img: {fileID: 1312797600879432014}
+  suit: 0
+  value: 0
 --- !u!225 &1312797600879432008
 CanvasGroup:
   m_ObjectHideFlags: 0

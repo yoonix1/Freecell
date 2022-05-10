@@ -226,6 +226,67 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!1 &64722053
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 64722054}
+  - component: {fileID: 64722055}
+  m_Layer: 0
+  m_Name: AssetManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &64722054
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 64722053}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 519420032}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &64722055
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 64722053}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b0e82d122d7c54d10ba3cf46ec753211, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardFronts:
+  - m_AssetGUID: bc75afb3dd1ca4bd5b2869f51d4d62f0
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 34f0f7f1499284b3b96fb69ea3dc0438
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: 5b80bbb84d7644226abbd0177a0b6478
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  - m_AssetGUID: df9b7cd8c9c2e4a42a1ca98af707b15d
+    m_SubObjectName: 
+    m_SubObjectType: 
+    m_EditorAssetChanged: 0
+  audioSources: []
 --- !u!1 &182337355
 GameObject:
   m_ObjectHideFlags: 0
@@ -860,6 +921,7 @@ Transform:
   m_Children:
   - {fileID: 62565501}
   - {fileID: 528174274}
+  - {fileID: 64722054}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2045,25 +2107,6 @@ MonoBehaviour:
   objCard: {fileID: 1312797600879432013, guid: 0e6f414f446b94bd1924ef1cd5a620ce, type: 3}
   dispTime: {fileID: 1399064885}
   dispScore: {fileID: 1531755053}
-  cardFronts:
-  - m_AssetGUID: df9b7cd8c9c2e4a42a1ca98af707b15d
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_EditorAssetChanged: 0
-  - m_AssetGUID: 34f0f7f1499284b3b96fb69ea3dc0438
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_EditorAssetChanged: 0
-  - m_AssetGUID: 5b80bbb84d7644226abbd0177a0b6478
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_EditorAssetChanged: 0
-  - m_AssetGUID: bc75afb3dd1ca4bd5b2869f51d4d62f0
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_EditorAssetChanged: 0
-  audioSources:
-  - {fileID: 528174275}
 --- !u!114 &2040945829
 MonoBehaviour:
   m_ObjectHideFlags: 0

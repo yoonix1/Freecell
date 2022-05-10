@@ -13,12 +13,14 @@ using UnityEditor;
 
 public class Deck : MonoBehaviour
 {
+    public static Deck Instance { get; private set;}
+
     public Button deal;
     public Button options;
     public Menu quitMenu;
 
     public DropZone objPile;
-    public Card objCard;
+    public CardFront objCard;
 
     public Text dispTime;
     public Text dispScore;
@@ -29,33 +31,31 @@ public class Deck : MonoBehaviour
     private int score = 0;
     private DateTime lastFinishedTime;
 
-    [SerializeField]
-    private AssetReference[] cardFronts;
+    private CardFront[] card = new CardFront[Constants.NUMBER_OF_CARDS];
 
-    [SerializeField]
-    private AudioSource[] audioSources;
-
-    private Card[] card = new Card[Constants.NUMBER_OF_CARDS];
-
-    private LinkedList<Card>[] column = new LinkedList<Card>[8];
     private DropZone[] pile = new DropZone[4];
     private DropZone[] work = new DropZone[4];
     private DropZone[] colPile = new DropZone[8];
 
-    private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
 
-    private AsyncOperationHandle resourceHandle;
-
-    private int cardidx = 0;
     private float width = 0;
     private float height = 0;
     private float playTime;
 
-    private float numAvailableSlots = 4;
     private System.Random rand = new System.Random();
 
     private void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            Instance = this;
+	    }
+
+
         int i;
         RectTransform rect = GetComponent<RectTransform>();
         width = rect.rect.width;
@@ -67,29 +67,33 @@ public class Deck : MonoBehaviour
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
             card[i] = Instantiate(objCard, Vector3.zero, Quaternion.identity, rect);
-            card[i].theDeck = this;
+            card[i].SetValue(i);
         }
 
         for (i = 0; i < 4; i++)
         {
             work[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
             work[i].SetColor(color2);
-            work[i].theDeck = this;
+            work[i].colIdx = i;
+            work[i].zoneMode = DropZoneMode.Work;
         }
         for (i = 0; i < 4; i++)
         {
             pile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
-            pile[i].theDeck = this;
             pile[i].SetColor(color1);
+            pile[i].colIdx = i;
+            pile[i].zoneMode = DropZoneMode.Pile;
         }
 
         for (i = 0; i < 8; i++)
         {
             colPile[i] = Instantiate(objPile, Vector3.zero, Quaternion.identity, rect);
             colPile[i].SetColor(color2);
-            colPile[i].theDeck = this;
-            column[i] = new LinkedList<Card>();
+            colPile[i].zoneMode = DropZoneMode.Deck;
+            colPile[i].colIdx = i;
         }
+
+	    AssetManager.Instance.OnAssetLoaded += OnCardFrontChanged;
     }
 
     void Start()
@@ -98,29 +102,20 @@ public class Deck : MonoBehaviour
 
         for (i = 0; i < Constants.NUMBER_OF_CARDS; i++)
         {
-            card[i].SetValue(i);
             card[i].GetRect().anchoredPosition = new Vector2(0, height / 2 + Constants.CARD_HEIGHT);
         }
-
 
         float colwidth = Constants.PILE_GAP + Constants.CARD_WIDTH;
         for (i = 0; i < 4; i++)
         {
             pile[i].GetRect().anchoredPosition = new Vector2(colwidth * i + Constants.SCREEN_OFFSET_PILE, Constants.SCREEN_OFFSET_H);
-            pile[i].zoneMode = DropZoneMode.Pile;
-            pile[i].colIdx = i;
-
             work[i].GetRect().anchoredPosition = new Vector2(colwidth * i + Constants.SCREEN_OFFSET_W, Constants.SCREEN_OFFSET_H);
-            work[i].zoneMode = DropZoneMode.Work;
-            work[i].colIdx = i;
         }
 
         colwidth = Constants.CARD_GAP + Constants.CARD_WIDTH;
         for (i = 0; i < 8; i++)
         {
             colPile[i].GetRect().anchoredPosition = new Vector2(colwidth * i + Constants.SCREEN_OFFSET_W, Constants.SCREEN_CARDS_OFFSET_H);
-            colPile[i].zoneMode = DropZoneMode.Deck;
-            colPile[i].colIdx = i;
         }
     }
 
@@ -147,12 +142,13 @@ public class Deck : MonoBehaviour
     {
         HideCards();
         deal.gameObject.SetActive(false);
-        ChangeCardFront();
+        ChangeCardFront(1);
     }
+    /*
 
     public LinkedList<Card> GetColumnAfter(Card c)
     {
-        int idx = c.GetDropZone().colIdx;
+	    LinkedList<Card> currentList = c.GetCurrentDropZone().GetList();
         LinkedList<Card> result = new LinkedList<Card>();
         LinkedListNode<Card> toMove = column[idx].Find(c);
 
@@ -165,13 +161,13 @@ public class Deck : MonoBehaviour
 
         return result;
     }
+    */
 
     public void PlaySound(SoundEffect se)
     {
         switch (se)
         {
             case SoundEffect.CardDropped:
-                audioSources[(int)se].Play();
                 break;
             default:
                 break;
@@ -189,18 +185,8 @@ public class Deck : MonoBehaviour
         score = 0;
         lastFinishedTime = DateTime.Now;
         isPlaying = true;
-        numAvailableSlots = 4;
         dispScore.text = score.ToString();
 
-        foreach (DropZone p in pile)
-        {
-            p.SetCard(null);
-        }
-    }
-
-    public Sprite GetSprite(int idx)
-    {
-        return sprites[idx];
     }
 
     public void DrawDeck()
@@ -212,36 +198,43 @@ public class Deck : MonoBehaviour
     {
         RectTransform myRect = GetComponent<RectTransform>();
         Vector2 offset = Vector2.zero;
-        int i = 0;
+        int irow = 0;
         int icol = 0;
-        foreach (LinkedList<Card> cards in column)
-        {
-            offset.x = icol * (Constants.CARD_GAP + Constants.CARD_WIDTH) + Constants.SCREEN_OFFSET_W;
-            i = 0;
-            foreach (Card item in cards)
-            {
-                offset.y = -(Constants.CARD_GAP * 2) * i + Constants.SCREEN_CARDS_OFFSET_H;
+	    int cardCount = 0;
 
-                LeanTween.moveLocal(item.gameObject, offset, 0.25f).setEaseInOutCubic().setOnComplete(_cardSound);
-                //item.GetRect().anchoredPosition = offset;
-                yield return new WaitForSeconds(0.1f);
+	    LinkedListNode<Card>[] itr = new LinkedListNode<Card>[8];
 
-                item.GetRect().SetAsLastSibling();
-                item.GetDraggable().enabled = false;
-                if (cards.Last.Value == item)
-                {
-                    item.GetComponent<Draggable>().enabled = true;
-                }
-                i += 1;
-            }
-            icol += 1;
-        }
+	    for( icol = 0; icol < 8; icol ++) 
+	    {
+	        itr[icol] = colPile[icol].GetStack().First;
+		}
+
+	    while(cardCount < Constants.NUMBER_OF_CARDS) 
+	    {
+            offset.y = -(Constants.CARD_GAP * 2) * irow + Constants.SCREEN_CARDS_OFFSET_H;
+            for( icol = 0; icol < 8; icol++ )
+	        {
+		        Card c = itr[icol]?.Value;
+		        if ( c != null ) 
+		        {
+                    offset.x = icol * (Constants.CARD_GAP + Constants.CARD_WIDTH) + Constants.SCREEN_OFFSET_W;
+                    LeanTween.moveLocal(c.gameObject, offset, 0.25f).setEaseInOutCubic().setOnComplete(_cardSound);
+		            c.GetRect().SetAsLastSibling();
+                    yield return new WaitForSeconds(0.1f);
+		        }
+		        itr[icol] = itr[icol]?.Next;
+		        cardCount++;
+		    }
+	        irow ++;
+	    }
     }
 
     private void _cardSound()
     {
         PlaySound(SoundEffect.CardDropped);
     }
+
+    /*
 
     public bool CanBeDropped(DropZoneMode zoneMode, Card dropzoneCard, Card dropee)
     {
@@ -514,6 +507,7 @@ public class Deck : MonoBehaviour
     {
         UpdateMovableCards();
     }
+    */
 
     private void KeepTrackScore()
     { 
@@ -540,6 +534,16 @@ public class Deck : MonoBehaviour
 
     private void MarkAllCardsOnDeck()
     {
+    /*
+	    // Get The Deck Ready to Play
+
+        numAvailableSlots = 4;
+        foreach (DropZone p in pile)
+        {
+            p.SetCard(null);
+	        p.enabled = true;
+        }
+
         int idx = 0;
         foreach (LinkedList<Card> col in column)
         {
@@ -554,6 +558,7 @@ public class Deck : MonoBehaviour
 
             idx++;
         }
+    */
     }
 
     private void DoDeal(uint seed)
@@ -562,9 +567,9 @@ public class Deck : MonoBehaviour
         uint c;
         uint cardsleft = Constants.NUMBER_OF_CARDS;
 
-        foreach (LinkedList<Card> col in column)
+        foreach (DropZone col in colPile)
         {
-            col.Clear();
+            col.GetStack().Clear();
         }
 
         int[] cards = new int[Constants.NUMBER_OF_CARDS];
@@ -581,8 +586,7 @@ public class Deck : MonoBehaviour
 
             Card addee = card[cards[c]];
             int colIdx = i % 8;
-            column[colIdx].AddLast(addee);
-            addee.GetDropZone().colIdx = colIdx;
+            colPile[colIdx].MoveTo(addee);
 
             cards[c] = cards[cardsleft - 1];
             cardsleft -= 1;
@@ -591,12 +595,12 @@ public class Deck : MonoBehaviour
 
     bool YouWon()
     {
-        int totalCardsOnDeck = 0;
-        foreach(LinkedList<Card> c in column)
+        int piledCards = 0;
+        foreach(DropZone dz in pile)
         {
-            totalCardsOnDeck += c.Count;
+            piledCards += dz.GetStack().Count;
 	    }
-        if (numAvailableSlots == 4 && totalCardsOnDeck == 0)
+        if (piledCards == Constants.NUMBER_OF_CARDS)
         {
             return true;
 	    }
@@ -618,22 +622,13 @@ public class Deck : MonoBehaviour
     
 
     //static int debugcount = 0;
-    void ChangeCardFront()
+    void ChangeCardFront(int idx)
     {
-        cardidx += 1;
-        cardidx %= cardFronts.Length;
-
-        if (resourceHandle.IsValid())
-        {
-            Addressables.Release(resourceHandle);
-        }
-
-        cardFronts[cardidx].LoadAssetAsync<Sprite[]>().Completed += (obj) =>
-        {
-            resourceHandle = obj;
-            sprites = obj.Result;
-            InitGame();
-            //Debug.Log("Loaded cards" + debugcount); debugcount = debugcount +1
-        };
+	    AssetManager.Instance.LoadCardFront(1);
     }
+
+    void OnCardFrontChanged(object dispatcher, EventArgs evt )
+	{
+	    InitGame();
+	}
 }
