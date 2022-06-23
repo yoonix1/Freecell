@@ -3,39 +3,35 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public class MenuCloseMsg : EventArgs {
+    public int selection;
+}
+
 public class Menu : MonoBehaviour
 {
-    private Deck theDeck;
-    Deck.Callback _callback;
+    public event EventHandler MenuHandler;
 
-    public void Show(Deck.Callback c)
+    public void Show()
     {
-        _callback = c;
         gameObject.SetActive(true);
         GetComponent<RectTransform>().localScale = new Vector3(1.0f, 0.0f, 0.2f);
         LeanTween.scaleY(gameObject, 1.0f, 0.5f).setEaseInOutCubic();
     }
 
-    public void QuitGame()
-    {
-        Boolean param = true;
-        LeanTween.scaleY(gameObject, 0.1f, 0.2f).setEaseInOutCubic().setOnComplete(_quitAction).setOnCompleteParam(param);
+    public void Choose(Int32 selection)
+    { 
+        LeanTween.scaleY(gameObject, 0.1f, 0.2f).setEaseInOutCubic().setOnComplete(_quitAction).setOnCompleteParam(selection);
     }
 
-    public void Cancel()
+    void _quitAction(object selection)
     {
-        Boolean param = false;
-        LeanTween.scaleY(gameObject, 0.1f, 0.2f).setEaseInOutCubic().setOnComplete(_quitAction).setOnCompleteParam(param);
-    }
-
-    void _quitAction(object success)
-    {
-        Boolean s = (Boolean) success;
+        Int32 s = (Int32) selection;
         gameObject.SetActive(false);
 
-        if (s == true)
-	    { 
-            _callback();
-	    }
+        MenuCloseMsg msg = new MenuCloseMsg();
+        msg.selection = s;
+
+        MenuHandler?.Invoke(this, msg);
     }
 }

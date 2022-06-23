@@ -21,11 +21,11 @@ public class Constants
 
 public enum Suit
 {
-    HEART,
-    SPADE,
-    DIAMOND,
-    CLUB,
-    COUNT
+    HEART = 0,
+    SPADE = 1,
+    DIAMOND = 2,
+    CLUB = 3,
+    COUNT = 4
 }
 
 public enum DropZoneMode
@@ -33,10 +33,5 @@ public enum DropZoneMode
     Work,
     Pile, 
     Deck,
-}
-
-public enum SoundEffect
-{ 
-    CardDropped = 0,
 }
 

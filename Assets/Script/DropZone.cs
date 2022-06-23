@@ -75,12 +75,13 @@ public class DropZone : MonoBehaviour, IDropHandler
         Vector2 anchorPos = GetAnchorPos();
 	    LinkedListNode<Card> item = moving.First;
 
+        Deck.Instance.RecordHistory(moving, this);
+
 	    while(item != null)
 	    {
 	        moving.RemoveFirst();
 
             Deck.Instance.OnCardMoved(item.Value.GetDropZone(), this);
-
 	        stack.AddLast(item);
 	        item.Value.SetCurrentDropZone(this);
             item = moving.First;
@@ -95,7 +96,6 @@ public class DropZone : MonoBehaviour, IDropHandler
 	    list.RemoveLast();
 
         Deck.Instance.OnCardMoved(card.GetDropZone(), this);
-
 	    stack.AddLast(node);
 	    card.SetCurrentDropZone(this);
     }

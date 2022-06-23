@@ -17,12 +17,17 @@ public class CardFront : Card
 
     public void SetValue(int mixedValue)
     {
-        AssetManager.Instance.GetSprite(mixedValue);
         img.sprite = AssetManager.Instance.GetSprite(mixedValue);
         value = mixedValue % 13 + 1;
         suit = (Suit)(mixedValue / 13);
         
         name = suitToString[(int)suit] + value.ToString();
+    }
+
+    public void Refresh()
+    {
+        int mixedValue = (int)suit * 13 + value - 1;
+        img.sprite = AssetManager.Instance.GetSprite(mixedValue);
     }
 
 }
