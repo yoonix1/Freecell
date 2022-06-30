@@ -179,8 +179,9 @@ public class Deck : MonoBehaviour
 
     public void OnDeal()
     {
+        // happens onclick-deal button. then once the card is loaded continues with the dealing
+        isPlaying = false;
         HideCards();
-        deal.gameObject.SetActive(false);
         ChangeCardFront(cardStyle);
     }
 
@@ -188,27 +189,19 @@ public class Deck : MonoBehaviour
     {
         uint seed = (uint)rand.Next(0, 214013);
         DoDeal(seed);
-        DrawDeck();
-        MarkAllCardsOnDeck();
-        score = 0;
-        dispScore.text = score.ToString();
+        deal.gameObject.SetActive(false);
+        StartCoroutine(_CoroutineDrawDeck());
     }
 
     private void StartGame()
     {
         playTime = 0;
         score = 0;
-        lastFinishedTime = DateTime.Now;
         isPlaying = true;
+        lastFinishedTime = DateTime.Now;
         dispScore.text = score.ToString();
         moveHistory.Clear();
         UpdateDeck();
-    }
-
-
-    public void DrawDeck()
-    {
-        StartCoroutine(_CoroutineDrawDeck());
     }
 
     private IEnumerator _CoroutineDrawDeck()
@@ -245,6 +238,7 @@ public class Deck : MonoBehaviour
             irow++;
         }
 
+        MarkAllCardsOnDeck();
         StartGame();
     }
 

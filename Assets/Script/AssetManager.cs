@@ -1,8 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.AddressableAssets.ResourceLocators;
+using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine;
 
 
@@ -11,13 +12,11 @@ public class AssetManager : MonoBehaviour
     public static AssetManager Instance { get; private set; }
 
     public event EventHandler OnAssetLoaded;
-     
-    [SerializeField]
-    private AssetReference[] cardFronts;
+
+    private String[] resourceNames = { "mycards1", "mycards2", "mycards3", "mycards4" };
 
     [SerializeField]
     private AudioSource[] audioSources;
-
 
     private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
     private AsyncOperationHandle<Sprite[]> cardFrontHandle;
@@ -31,6 +30,7 @@ public class AssetManager : MonoBehaviour
         else
         {
             Instance = this;
+            Addressables.InitializeAsync();
 	    }
     }
 
@@ -41,12 +41,20 @@ public class AssetManager : MonoBehaviour
             Addressables.Release(cardFrontHandle);
         }
 
-        cardFronts[cardidx].LoadAssetAsync<Sprite[]>().Completed += (obj) =>
-        {
-            cardFrontHandle = obj;
-            sprites = obj.Result;
-	        OnAssetLoaded?.Invoke(this, EventArgs.Empty);
-        };
+    //   foreach( var locator in  Addressables.ResourceLocators)
+    //   {
+    //       foreach(var item in locator.Keys )
+    //       { 
+    //           Debug.Log(String.Format("{0} {1} ", item.ToString(), item.GetType()));
+	//       }
+	//   }
+
+        Addressables.LoadAssetAsync<Sprite[]>(resourceNames[cardidx]).Completed += obj =>
+            {
+                cardFrontHandle = obj;
+                sprites = obj.Result;
+                OnAssetLoaded?.Invoke(this, EventArgs.Empty);
+            };
     }
 
     public Sprite GetSprite(int i) { return sprites[i]; }
