@@ -5,7 +5,8 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.AddressableAssets.ResourceLocators;
 using UnityEngine.ResourceManagement.ResourceLocations;
 using UnityEngine;
-
+using UnityEngine.Networking;
+using System.Collections;
 
 public class AssetManager : MonoBehaviour
 {
@@ -13,13 +14,18 @@ public class AssetManager : MonoBehaviour
 
     public event EventHandler OnAssetLoaded;
 
-    private String[] resourceNames = { "mycards1", "mycards2", "mycards3", "mycards4" };
-
+    private String[] resourceNames = { "bundle1", "bundle2", "bundle3", "bundle4" };
+    public AssetReference[] objects;
     [SerializeField]
     private AudioSource[] audioSources;
 
+    [SerializeField]
+    private String host = "http://192.168.7.65/StandaloneOSX/";
+
     private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
     private AsyncOperationHandle<Sprite[]> cardFrontHandle;
+
+    private AssetBundle bundle;
 
     void Awake()
     {
@@ -31,23 +37,26 @@ public class AssetManager : MonoBehaviour
         {
             Instance = this;
             Addressables.InitializeAsync();
-	    }
+            // m_handle = Addressables.LoadResourceLocationsAsync("mycards1");
+        }
     }
 
     public void LoadCardFront(int cardidx)
     {
+        StartCoroutine("LoadFromBundle", resourceNames[cardidx]);
+        /*
         if (cardFrontHandle.IsValid())
         {
             Addressables.Release(cardFrontHandle);
         }
 
-    //   foreach( var locator in  Addressables.ResourceLocators)
-    //   {
-    //       foreach(var item in locator.Keys )
-    //       { 
-    //           Debug.Log(String.Format("{0} {1} ", item.ToString(), item.GetType()));
-	//       }
-	//   }
+        //   foreach( var locator in  Addressables.ResourceLocators)
+        //   {
+        //       foreach(var item in locator.Keys )
+        //       { 
+        //           Debug.Log(String.Format("{0} {1} ", item.ToString(), item.GetType()));
+        //       }
+        //   }
 
         Addressables.LoadAssetAsync<Sprite[]>(resourceNames[cardidx]).Completed += obj =>
             {
@@ -55,6 +64,32 @@ public class AssetManager : MonoBehaviour
                 sprites = obj.Result;
                 OnAssetLoaded?.Invoke(this, EventArgs.Empty);
             };
+        */
+    }
+
+    IEnumerator LoadFromBundle(String target)
+    {
+        Caching.ClearCache();
+        using (var uwr = UnityWebRequestAssetBundle.GetAssetBundle(host + target))
+        {
+            yield return uwr.SendWebRequest();
+
+            if (uwr.result != UnityWebRequest.Result.Success)
+            {
+                Debug.Log(uwr.error);
+            }
+            else
+            {
+                // free previously loaded objects
+                if (bundle != null)
+                {
+                    bundle.Unload(true);
+		        }
+                bundle = DownloadHandlerAssetBundle.GetContent(uwr);
+                sprites = bundle.LoadAllAssets<Sprite>();
+                OnAssetLoaded?.Invoke(this, EventArgs.Empty);
+            }
+        }
     }
 
     public Sprite GetSprite(int i) { return sprites[i]; }
