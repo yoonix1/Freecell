@@ -20,6 +20,7 @@ public class AssetManager : MonoBehaviour
     private AudioSource[] audioSources;
 
     [SerializeField]
+    private String hostbase = "http://192.168.7.65/";
     private String host = "http://192.168.7.65/StandaloneOSX/";
 
     private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
@@ -39,6 +40,13 @@ public class AssetManager : MonoBehaviour
             Addressables.InitializeAsync();
             // m_handle = Addressables.LoadResourceLocationsAsync("mycards1");
         }
+
+        String platform = "StandaloneOSX";
+#if UNITY_ANDROID
+        platform = "Android";
+#endif
+        host = hostbase + platform + "/";
+
     }
 
     public void LoadCardFront(int cardidx)
