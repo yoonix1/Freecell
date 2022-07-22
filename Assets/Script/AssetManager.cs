@@ -14,18 +14,19 @@ public class AssetManager : MonoBehaviour
 
     public event EventHandler OnAssetLoaded;
 
-    private String[] resourceNames = { "bundle1", "bundle2", "bundle3", "bundle4" };
+    //private String[] resourceNames = { "bundle1", "bundle2", "bundle3", "bundle4" };
+    private String[] resourceNames = { "mycards1", "mycards2", "mycards3", "mycards4" }; // Addressable
     public AssetReference[] objects;
     [SerializeField]
     private AudioSource[] audioSources;
 
     [SerializeField]
     private String hostbase = "http://192.168.7.65/";
-    private String host = "http://192.168.7.65/StandaloneOSX/";
+    private String host = "http://192.168.7.65/StandaloneOSX/"; // this is reset on Awake depends on the plantform
 
     private Sprite[] sprites = new Sprite[Constants.NUMBER_OF_CARDS];
-    private AsyncOperationHandle<Sprite[]> cardFrontHandle;
 
+    private AsyncOperationHandle<Sprite[]> cardFrontHandle;
     private AssetBundle bundle;
 
     void Awake()
@@ -51,8 +52,7 @@ public class AssetManager : MonoBehaviour
 
     public void LoadCardFront(int cardidx)
     {
-        StartCoroutine("LoadFromBundle", resourceNames[cardidx]);
-        /*
+        //StartCoroutine("LoadFromBundle", resourceNames[cardidx]);
         if (cardFrontHandle.IsValid())
         {
             Addressables.Release(cardFrontHandle);
@@ -72,7 +72,6 @@ public class AssetManager : MonoBehaviour
                 sprites = obj.Result;
                 OnAssetLoaded?.Invoke(this, EventArgs.Empty);
             };
-        */
     }
 
     IEnumerator LoadFromBundle(String target)
