@@ -76,7 +76,7 @@ public class AssetManager : MonoBehaviour
 
     IEnumerator LoadFromBundle(String target)
     {
-        Caching.ClearCache();
+        //Caching.ClearCache();
         using (var uwr = UnityWebRequestAssetBundle.GetAssetBundle(host + target))
         {
             yield return uwr.SendWebRequest();
